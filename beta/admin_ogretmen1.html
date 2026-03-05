@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>MSR - Gelişmiş Öğretmen & Sınıf Yönetimi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #2563eb; --bg: #f4f7fa; --white: #ffffff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); padding: 30px; color: #1e293b; }
+        
+        /* GİRİŞ EKRANI */
+        .admin-login-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-card { background: var(--white); padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        
+        .container { max-width: 1300px; margin: auto; display: none; grid-template-columns: 380px 1fr; gap: 30px; }
+        .card { background: var(--white); padding: 30px; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { color: var(--p); font-size: 1.4rem; font-weight: 800; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        input, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 0.95rem; }
+        button { cursor: pointer; border: none; border-radius: 12px; font-weight: 700; transition: 0.3s; }
+        .btn-save { background: var(--p); color: white; width: 100%; padding: 15px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 15px; background: #f8fafc; font-size: 0.85rem; color: #64748b; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        
+        .class-badge { 
+            background: #eff6ff; color: #1e40af; padding: 5px 12px; 
+            border-radius: 8px; font-size: 0.75rem; margin: 2px; border: 1px solid #dbeafe;
+            cursor: pointer; display: inline-block; transition: 0.2s;
+        }
+        .class-badge:hover { background: #fee2e2; color: #ef4444; border-color: #fecaca; }
+
+        #editArea { border: 2px solid var(--p); display: none; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 5px; }
+        .btn-del-mini { background: #fee2e2; color: #ef4444; padding: 4px 8px; font-size: 0.7rem; }
+    </style>
+</head>
+<body>
+
+<div id="adminAuth" class="admin-login-overlay">
+    <div class="login-card">
+        <h2 style="border:none">Admin Paneli Girişi</h2>
+        <input type="text" id="adminUser" placeholder="Kullanıcı Adı">
+        <input type="password" id="adminPass" placeholder="Şifre">
+        <button class="btn-save" onclick="checkAdminAuth()">Giriş Yap</button>
+    </div>
+</div>
+
+<div class="container" id="mainAdmin">
+    <aside>
+        <div class="card">
+            <h2>Öğretmen Tanımla</h2>
+            <input type="text" id="admName" placeholder="Öğretmen Ad Soyad">
+            <input type="text" id="admBranch" placeholder="Branş (Fizik, Mat vb.)">
+            <input type="text" id="admPass" placeholder="Giriş Şifresi">
+            <input type="text" id="targetClass" placeholder="Sınıf Adı (Örn: 9A)">
+            <textarea id="admStudentList" rows="6" placeholder="Ali Kaya 105, Ayşe Yılmaz 106"></textarea>
+            <button onclick="saveSystem()" class="btn-save">Kaydet ve Yetkilendir</button>
+        </div>
+
+        <div class="card" id="editArea">
+            <h2 id="editTitle">Sınıf Düzenle</h2>
+            <div id="studentManagerList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
+            <hr>
+            <div style="margin-top: 15px;">
+                <p style="font-size: 0.8rem; font-weight: 800;">➕ Tekli Öğrenci Ekle</p>
+                <input type="text" id="newStudentName" placeholder="Ad Soyad">
+                <input type="text" id="newStudentNo" placeholder="Okul No">
+                <button onclick="addSingleStudent()" class="btn-save" style="background: #10b981;">Öğrenciyi Ekle</button>
+                <button onclick="closeEdit()" style="width: 100%; margin-top: 10px; background: #64748b; color: white; padding: 10px;">Kapat</button>
+                <button id="removeClassBtn" style="width: 100%; margin-top: 10px; background: #ef4444; color: white; padding: 10px;">Bu Sınıfı Sil</button>
+            </div>
+        </div>
+    </aside>
+
+    <main>
+        <div class="card">
+            <h2>Öğretmenler ve Branşlar</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Öğretmen</th>
+                        <th>Branş</th>
+                        <th>Sınıflar</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="teacherTableBody"></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, collection, onSnapshot, updateDoc, deleteDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0", 
+        authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com", 
+        projectId: "msr-odev-takip-ve-duyuru", 
+        storageBucket: "msr-odev-takip-ve-duyuru.firebasestorage.app", 
+        messagingSenderId: "282364522003", 
+        appId: "1:282364522003:web:b6320b950230ba6c6c19e6" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentEditingTeacher = "";
+    let currentEditingClass = "";
+    let currentStudentData = [];
+
+    // ŞİFRE 12345 OLARAK GÜNCELLENDİ
+    window.checkAdminAuth = function() {
+        if(document.getElementById('adminUser').value === "yasinkoc" && document.getElementById('adminPass').value === "12345") {
+            document.getElementById('adminAuth').style.display = "none";
+            document.getElementById('mainAdmin').style.display = "grid";
+            listenTeachers();
+        } else alert("Hatalı Giriş!");
+    }
+
+    window.saveSystem = async function() {
+        const name = document.getElementById('admName').value.trim();
+        const branch = document.getElementById('admBranch').value.trim();
+        const pass = document.getElementById('admPass').value.trim();
+        const className = document.getElementById('targetClass').value.trim();
+        const rawStudents = document.getElementById('admStudentList').value.trim();
+
+        if(!name || !branch || !pass || !className || !rawStudents) return alert("Branş dahil tüm alanları doldurun!");
+
+        const processedStudents = rawStudents.split(',').map(item => {
+            const parts = item.trim().split(' ');
+            const number = parts.pop(); 
+            const fullName = parts.join(' '); 
+            return { name: fullName, number: number };
+        });
+
+        await setDoc(doc(db, "ogretmenler", name), {
+            adSoyad: name,
+            brans: branch, 
+            sifre: pass,
+            siniflar: { [className]: processedStudents }
+        }, { merge: true });
+        
+        alert("Başarıyla kaydedildi.");
+        document.getElementById('targetClass').value = "";
+        document.getElementById('admStudentList').value = "";
+    }
+
+    window.openClassEditor = function(tName, className, students) {
+        currentEditingTeacher = tName;
+        currentEditingClass = className;
+        currentStudentData = students;
+        document.getElementById('editArea').style.display = "block";
+        document.getElementById('editTitle').innerText = `${tName} - ${className}`;
+        document.getElementById('removeClassBtn').onclick = () => removeClass(tName, className);
+        renderEditList();
+    }
+
+    window.removeClass = async (tName, className) => {
+        if(confirm("Sınıf silinsin mi?")) {
+            await updateDoc(doc(db, "ogretmenler", tName), { [`siniflar.${className}`]: deleteField() });
+            closeEdit();
+        }
+    }
+
+    function renderEditList() {
+        const cont = document.getElementById('studentManagerList');
+        cont.innerHTML = "";
+        currentStudentData.forEach((s, index) => {
+            cont.innerHTML += `<div class="student-item"><span>${s.number} - ${s.name}</span><button class="btn-del-mini" onclick="removeStudent(${index})">Sil</button></div>`;
+        });
+    }
+
+    window.removeStudent = async (index) => {
+        currentStudentData.splice(index, 1);
+        await updateDoc(doc(db, "ogretmenler", currentEditingTeacher), { [`siniflar.${currentEditingClass}`]: currentStudentData });
+        renderEditList();
+    }
+
+    window.addSingleStudent = async () => {
+        const n = document.getElementById('newStudentName').value;
+        const s = document.getElementById('newStudentNo').value;
+        currentStudentData.push({ name: n, number: s });
+        await updateDoc(doc(db, "ogretmenler", currentEditingTeacher), { [`siniflar.${currentEditingClass}`]: currentStudentData });
+        renderEditList();
+    }
+
+    window.closeEdit = () => document.getElementById('editArea').style.display = "none";
+
+    function listenTeachers() {
+        onSnapshot(collection(db, "ogretmenler"), (snapshot) => {
+            const tbody = document.getElementById('teacherTableBody');
+            tbody.innerHTML = "";
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const tName = docSnap.id;
+                const classBadges = Object.keys(data.siniflar || {}).map(c => 
+                    `<span class="class-badge" onclick='openClassEditor("${tName}", "${c}", ${JSON.stringify(data.siniflar[c])})'>${c}</span>`
+                ).join('');
+                tbody.innerHTML += `<tr><td><strong>${tName}</strong></td><td>${data.brans || 'Branş Yok'}</td><td>${classBadges}</td><td><button onclick="deleteTeacher('${tName}')" style="color:red">Tümü Sil</button></td></tr>`;
+            });
+        });
+    }
+    
+    window.deleteTeacher = async (name) => { if(confirm("Silinsin mi?")) await deleteDoc(doc(db, "ogretmenler", name)); };
+</script>
+</body>
+</html>
