@@ -3,175 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veli Bilgilendirme Sistemi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <title>Ödev Takibi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-light: #eef2ff;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a; 
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
             --secondary: #10b981;
-            --secondary-light: #ecfdf5;
-            --bg: #fdfeff;
-            --text-main: #0f172a;
-            --text-slim: #64748b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        body {
-            background-color: var(--bg);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.04) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        body { 
+            background: var(--bg); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            overflow-x: hidden;
             color: var(--text-main);
-            overflow: hidden;
         }
 
-        .main-wrapper {
+        /* Arka Plan Parlama Efektleri */
+        .bg-glow-1 {
+            position: absolute; width: 400px; height: 400px;
+            background: var(--primary); filter: blur(150px);
+            opacity: 0.15; z-index: -1; top: 10%; left: 10%;
+            animation: pulse 8s infinite alternate;
+        }
+
+        .bg-glow-2 {
+            position: absolute; width: 400px; height: 400px;
+            background: var(--secondary); filter: blur(150px);
+            opacity: 0.1; z-index: -1; bottom: 10%; right: 10%;
+            animation: pulse 10s infinite alternate-reverse;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); opacity: 0.1; }
+            to { transform: scale(1.2); opacity: 0.2; }
+        }
+
+        .main-container {
             width: 100%;
             max-width: 1100px;
-            padding: 40px;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        header {
+            padding: 40px 20px;
             text-align: center;
-            margin-bottom: 70px;
+            animation: slideUp 0.8s ease-out;
         }
 
-        header h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            letter-spacing: -2px;
-            background: linear-gradient(90deg, #1e293b, #4f46e5);
+        header { margin-bottom: 60px; }
+        header h1 { 
+            font-size: 3rem; 
+            font-weight: 800; 
+            letter-spacing: -2px; 
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #fff, var(--primary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        header p { color: var(--text-muted); font-size: 1.1rem; }
 
         .portal-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 35px;
+            gap: 25px;
         }
 
         .portal-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            padding: 60px 40px;
-            border-radius: 40px;
+            background: var(--card-bg);
+            padding: 50px 30px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
             text-decoration: none;
             color: inherit;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
-            cursor: pointer;
         }
 
         .portal-card:hover {
-            transform: translateY(-15px);
-            background: #ffffff;
-            box-shadow: 0 30px 60px -12px rgba(79, 70, 229, 0.12);
-            border-color: var(--primary-light);
+            transform: translateY(-12px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: rgba(30, 41, 59, 0.8);
         }
 
         .icon-box {
-            width: 90px;
-            height: 90px;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            margin-bottom: 30px;
+            font-size: 3.5rem;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
             transition: 0.3s;
         }
 
-        .teacher .icon-box { background: var(--primary-light); color: var(--primary); }
-        .parent .icon-box { background: var(--secondary-light); color: var(--secondary); }
-        .admin .icon-box { background: #f1f5f9; color: var(--text-main); }
+        .portal-card:hover .icon-box { transform: scale(1.1); }
 
         .portal-card h2 {
-            font-size: 1.6rem;
+            color: var(--text-main);
             font-weight: 800;
+            font-size: 1.6rem;
             margin-bottom: 15px;
-            color: #1e293b;
         }
 
         .portal-card p {
-            font-size: 1rem;
-            color: var(--text-slim);
+            color: var(--text-muted);
+            font-size: 0.95rem;
             line-height: 1.6;
-            margin-bottom: 35px;
-            min-height: 80px;
+            margin-bottom: 30px;
+            min-height: 70px;
         }
 
         .action-btn {
-            padding: 14px 28px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            transition: 0.3s;
             width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: 0.3s;
             border: none;
             cursor: pointer;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .teacher .action-btn { background: var(--primary); color: white; }
+        /* Kart Renkleri */
         .parent .action-btn { background: var(--secondary); color: white; }
-        .admin .action-btn { background: #1e293b; color: white; }
+        .teacher .action-btn { background: var(--primary); color: white; }
+        .admin .action-btn { background: #334155; color: white; }
 
-        @media (max-width: 950px) {
-            .portal-grid { grid-template-columns: 1fr; }
-            body { height: auto; padding: 60px 20px; overflow-y: auto; }
-            header h1 { font-size: 2.5rem; }
+        .action-btn:hover { opacity: 0.9; transform: scale(1.02); }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 900px) {
+            .portal-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+            header h1 { font-size: 2.2rem; }
         }
     </style>
 </head>
 <body>
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    
+    <div class="main-container">
+        <header>
+            <h1>Öğrenci Takip Sistemi</h1>
+            <p>Eğitim yönetiminde yeni nesil deneyim.</p>
+        </header>
 
-<div class="main-wrapper">
-    <header>
-        <h1>Veli Bilgilendirme Sistemi</h1>
-        <p style="color: #64748b;">Bu sistem üzerinden öğrenciler ödevlendirilebilir ve ödev takibi yapılabilir</p>
-    </header>
+        <div class="portal-grid">
+            <a href="veli1.html" class="portal-card parent">
+                <div class="icon-box">👪</div>
+                <h2>Veli & Öğrenci</h2>
+                <p>Ödev takibi, duyurular ve öğrenci gelişim raporlarına hızlı erişim.</p>
+                <button class="action-btn">Veli Girişi</button>
+            </a>
 
-    <div class="portal-grid">
-        <a href="ogretmen1.html" class="portal-card teacher">
-            <div class="icon-box">👨‍🏫</div>
-            <h2>Öğretmen</h2>
-            <p>Ödev yönetimi, dosya paylaşımı ve anlık öğrenci takip merkezi.</p>
-            <div class="action-btn">Eğitmen Girişi</div>
-        </a>
+            <a href="ogretmen1.html" class="portal-card teacher">
+                <div class="icon-box">👨‍🏫</div>
+                <h2>Öğretmen</h2>
+                <p>Ödevlendirme, sınıf yönetimi ve veli bilgilendirme merkezi.</p>
+                <button class="action-btn">Eğitmen Girişi</button>
+            </a>
 
-        <a href="veli1.html" class="portal-card parent">
-            <div class="icon-box">👪</div>
-            <h2>Veli & Öğrenci</h2>
-            <p>Güncel duyurular, öğretmen notları ve dijital materyallere erişim.</p>
-            <div class="action-btn">Veli Girişi</div>
-        </a>
-
-        <a href="adminlogin.html" class="portal-card admin">
-            <div class="icon-box">🛡️</div>
-            <h2>Yönetici</h2>
-            <p>Sınıf tanımlama, öğretmen atama ve sistem genel yetkilendirme paneli.</p>
-            <div class="action-btn">Panel Girişi</div>
-        </a>
+            <a href="adminlogin.html" class="portal-card admin">
+                <div class="icon-box">🛡️</div>
+                <h2>Yönetici</h2>
+                <p>Sistem yapılandırma, yetkilendirme ve genel veri yönetimi paneli.</p>
+                <button class="action-btn">Panel Girişi</button>
+            </a>
+        </div>
     </div>
-</div>
-
 </body>
 </html>
