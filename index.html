@@ -77,6 +77,7 @@
             align-items: center;
             text-align: center;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+            cursor: pointer;
         }
 
         .portal-card:hover {
@@ -114,6 +115,7 @@
             color: var(--text-slim);
             line-height: 1.6;
             margin-bottom: 35px;
+            min-height: 80px;
         }
 
         .action-btn {
@@ -125,23 +127,12 @@
             width: 100%;
             border: none;
             cursor: pointer;
+            text-align: center;
         }
 
         .teacher .action-btn { background: var(--primary); color: white; }
         .parent .action-btn { background: var(--secondary); color: white; }
-        
-        .admin-links { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
-        .admin-links a { 
-            text-decoration: none; 
-            background: #f1f5f9; 
-            color: #475569; 
-            padding: 14px 5px; 
-            border-radius: 14px; 
-            font-size: 0.8rem; 
-            font-weight: 700;
-            transition: 0.2s;
-        }
-        .admin-links a:hover { background: #e2e8f0; color: #1e293b; }
+        .admin .action-btn { background: #1e293b; color: white; }
 
         @media (max-width: 950px) {
             .portal-grid { grid-template-columns: 1fr; }
@@ -154,7 +145,7 @@
 
 <div class="main-wrapper">
     <header>
-        <h1>Portal Girişi</h1>
+        <h1>MSR Portal</h1>
     </header>
 
     <div class="portal-grid">
@@ -172,15 +163,12 @@
             <div class="action-btn">Veli Girişi</div>
         </a>
 
-        <div class="portal-card admin">
+        <a href="adminlogin.html" class="portal-card admin">
             <div class="icon-box">🛡️</div>
-            <h2>Yönetim</h2>
-            <p>Sistem genel yetkilendirme ve veri tabanı düzenleme paneli.</p>
-            <div class="admin-links">
-                <a href="admin_ogretmen1.html">Öğretmen Yön.</a>
-                <a href="admin_veli1.html">Veli Yön.</a>
-            </div>
-        </div>
+            <h2>Yönetici</h2>
+            <p>Sınıf tanımlama, öğretmen atama ve sistem genel yetkilendirme paneli.</p>
+            <div class="action-btn">Panel Girişi</div>
+        </a>
     </div>
 </div>
 
