@@ -23,15 +23,9 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
 
-        /* HEADER */
         header { 
-            background: white; 
-            border-bottom: 1px solid var(--border); 
-            padding: 15px 20px; 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: white; border-bottom: 1px solid var(--border); padding: 15px 20px; 
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
         .nav-tabs { display: flex; background: #f1f5f9; padding: 5px; border-radius: 12px; gap: 5px; }
@@ -43,12 +37,10 @@
 
         main { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 360px 1fr; gap: 30px; }
 
-        /* CARDS */
         .card { background: white; border-radius: var(--radius); padding: 25px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .section { display: none; }
         .section.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* MODERN INPUTS */
         label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em; }
         input[type="text"], input[type="password"], textarea {
             width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border);
@@ -56,7 +48,6 @@
         }
         input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); }
 
-        /* MODERN CHIPS (CHECKBOX) */
         .checklist { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .check-item { position: relative; cursor: pointer; }
         .check-item input { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -64,29 +55,17 @@
             display: inline-flex; padding: 8px 16px; background: #f1f5f9; color: var(--muted);
             border: 2px solid transparent; border-radius: 100px; font-size: 0.85rem; font-weight: 700; transition: 0.2s;
         }
-        .check-item input:checked + .chip { 
-            background: var(--primary-light); border-color: var(--primary); color: var(--primary); 
-            transform: translateY(-1px); box-shadow: 0 4px 6px rgba(99, 102, 241, 0.15);
-        }
+        .check-item input:checked + .chip { background: var(--primary-light); border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
 
-        /* ACCORDION */
         .item-row { background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; transition: 0.2s; }
-        .item-row:hover { border-color: var(--primary); box-shadow: var(--shadow); }
         .item-header { padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .item-header b { font-size: 1rem; color: var(--text); }
         .item-body { display: none; padding: 25px; background: #fafbfc; border-top: 1px solid var(--border); }
 
-        /* BUTTONS */
-        .btn { 
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
-            padding: 12px 24px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s;
-        }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-p { background: var(--primary); color: white; width: 100%; }
-        .btn-p:hover { background: var(--primary-hover); transform: translateY(-1px); }
         .btn-danger { background: #fee2e2; color: var(--danger); }
         .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; }
 
-        /* STUDENT TABLE */
         .student-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .student-table th { text-align: left; font-size: 0.7rem; color: var(--muted); padding: 10px; }
         .student-table td { padding: 8px; }
@@ -104,7 +83,7 @@
             <button class="nav-btn active" id="btn-teachers" onclick="nav('sec-teachers')">Eğitmenler</button>
             <button class="nav-btn" id="btn-classes" onclick="nav('sec-classes')">Sınıflar</button>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="localStorage.clear(); location.reload();">Çıkış</button>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Çıkış Yap</button>
     </div>
 </header>
 
@@ -135,18 +114,11 @@
 
     <div id="content-panel">
         <div id="list-teachers" class="section active">
-            <h2 style="margin-bottom:25px; font-weight:800; display:flex; align-items:center; gap:10px;">
-                <span style="width:4px; height:24px; background:var(--primary); border-radius:10px;"></span>
-                Eğitmen Yönetimi
-            </h2>
+            <h2 style="margin-bottom:25px; font-weight:800;">Eğitmen Yönetimi</h2>
             <div id="teacherContainer"></div>
         </div>
-        
         <div id="list-classes" class="section">
-            <h2 style="margin-bottom:25px; font-weight:800; display:flex; align-items:center; gap:10px;">
-                <span style="width:4px; height:24px; background:var(--primary); border-radius:10px;"></span>
-                Sınıf & Öğrenci Yönetimi
-            </h2>
+            <h2 style="margin-bottom:25px; font-weight:800;">Sınıf & Öğrenci Yönetimi</h2>
             <div id="classContainer"></div>
         </div>
     </div>
@@ -155,6 +127,9 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, collection, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    if(localStorage.getItem('msr_admin_auth') !== 'true') {
+        window.location.href = 'index.html';
+    }
 
     const firebaseConfig = { 
         apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0", authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com", 
@@ -165,6 +140,7 @@
 
     let globalClasses = {};
 
+    // --- NAVIGASYON VE ÇIKIŞ ---
     window.nav = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -179,7 +155,15 @@
         }
     };
 
-    // --- SINIF VE ÖĞRENCİ YÖNETİMİ ---
+    window.logout = () => {
+        if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload(); 
+        }
+    };
+
+    // --- REALTIME DATA LOAD ---
     onSnapshot(collection(db, "siniflar"), (snap) => {
         const container = document.getElementById('classContainer');
         const mainCheck = document.getElementById('mainChecklist');
@@ -191,46 +175,44 @@
             const id = d.id;
             globalClasses[id] = data.ogrenciler || [];
 
-            mainCheck.innerHTML += `
-                <label class="check-item">
-                    <input type="checkbox" name="cSet" value="${id}">
-                    <span class="chip">${id}</span>
-                </label>`;
+            mainCheck.innerHTML += `<label class="check-item"><input type="checkbox" name="cSet" value="${id}"><span class="chip">${id}</span></label>`;
 
             let studentRows = "";
             globalClasses[id].forEach((st, idx) => {
                 studentRows += `
-                    <tr>
-                        <td><input type="text" value="${st.number}" onchange="updateStudent('${id}', ${idx}, 'number', this.value)"></td>
-                        <td><input type="text" value="${st.name}" onchange="updateStudent('${id}', ${idx}, 'name', this.value)"></td>
-                        <td style="text-align:right;"><button class="btn btn-danger btn-sm" onclick="removeStudent('${id}', ${idx})">Sil</button></td>
-                    </tr>`;
+                <tr>
+                    <td><input type="text" value="${st.number}" style="width:60px;" onchange="updateStudent('${id}', ${idx}, 'number', this.value)"></td>
+                    <td><input type="text" value="${st.name}" onchange="updateStudent('${id}', ${idx}, 'name', this.value)"></td>
+                    <td style="text-align:right; display:flex; gap:5px; justify-content:flex-end;">
+                        <button class="btn btn-sm" style="background:#f1f5f9; color:var(--primary);" onclick="resetStudentPass('${id}', ${idx})">🔑 Sıfırla</button>
+                        <button class="btn btn-danger btn-sm" onclick="removeStudent('${id}', ${idx})">Sil</button>
+                    </td>
+                </tr>`;
             });
 
             container.innerHTML += `
-                <div class="item-row">
-                    <div class="item-header" onclick="toggleAccordion('class-${id}')">
-                        <div><b>${id} Sınıfı</b><br><small style="color:var(--muted)">${globalClasses[id].length} Öğrenci</small></div>
-                        <span style="color:var(--primary); font-weight:800; font-size:0.75rem">YÖNET</span>
+            <div class="item-row">
+                <div class="item-header" onclick="toggleAccordion('class-${id}')">
+                    <div><b>${id} Sınıfı</b><br><small>${globalClasses[id].length} Öğrenci</small></div>
+                    <span style="color:var(--primary); font-weight:800; font-size:0.75rem">YÖNET</span>
+                </div>
+                <div id="class-${id}" class="item-body">
+                    <label>Hızlı Öğrenci Ekle</label>
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="newStNo-${id}" placeholder="No" style="flex:1; margin:0;">
+                        <input type="text" id="newStName-${id}" placeholder="Ad Soyad" style="flex:2; margin:0;">
+                        <button class="btn btn-p" style="width:auto;" onclick="addSingleStudent('${id}')">Ekle</button>
                     </div>
-                    <div id="class-${id}" class="item-body">
-                        <label>Hızlı Öğrenci Ekle</label>
-                        <div style="display:flex; gap:10px; margin-bottom:20px;">
-                            <input type="text" id="newStNo-${id}" placeholder="No" style="flex:1; margin:0;">
-                            <input type="text" id="newStName-${id}" placeholder="Ad Soyad" style="flex:2; margin:0;">
-                            <button class="btn btn-p" style="width:auto;" onclick="addSingleStudent('${id}')">Ekle</button>
-                        </div>
-                        <table class="student-table">
-                            <thead><tr><th>NO</th><th>AD SOYAD</th><th style="text-align:right;">EYLEM</th></tr></thead>
-                            <tbody>${studentRows || '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--muted);">Henüz öğrenci yok.</td></tr>'}</tbody>
-                        </table>
-                        <button class="btn btn-danger btn-p" style="margin-top:25px; background:#fff1f1;" onclick="delItem('siniflar','${id}')">Sınıfı Sil</button>
-                    </div>
-                </div>`;
+                    <table class="student-table">
+                        <thead><tr><th>NO</th><th>AD SOYAD</th><th style="text-align:right;">EYLEM</th></tr></thead>
+                        <tbody>${studentRows || '<tr><td colspan="3" style="text-align:center;">Liste boş.</td></tr>'}</tbody>
+                    </table>
+                    <button class="btn btn-danger btn-p" style="margin-top:25px; background:#fff1f1;" onclick="delItem('siniflar','${id}')">Sınıfı Sil</button>
+                </div>
+            </div>`;
         });
     });
 
-    // --- ÖĞRETMEN YÖNETİMİ ---
     onSnapshot(collection(db, "ogretmenler"), (snap) => {
         const container = document.getElementById('teacherContainer');
         container.innerHTML = "";
@@ -238,7 +220,6 @@
             const data = d.data();
             const id = d.id;
             const assigned = Object.keys(data.siniflar || {});
-            
             let chips = "";
             Object.keys(globalClasses).forEach(cName => {
                 const chk = assigned.includes(cName) ? "checked" : "";
@@ -246,41 +227,118 @@
             });
 
             container.innerHTML += `
-                <div class="item-row">
-                    <div class="item-header" onclick="toggleAccordion('teach-${id}')">
-                        <div><b>${data.adSoyad}</b><br><small>${data.brans} • ${assigned.join(', ') || 'Yetki Yok'}</small></div>
-                        <span style="color:var(--primary); font-weight:800; font-size:0.75rem">DÜZENLE</span>
-                    </div>
-                    <div id="teach-${id}" class="item-body">
-                        <label>Branş</label><input type="text" id="eb-${id}" value="${data.brans}">
-                        <label>Şifre</label><input type="text" id="ep-${id}" value="${data.sifre}">
-                        <label>Sınıf Yetkileri</label><div class="checklist">${chips}</div>
-                        <button class="btn btn-p" onclick="saveEdit('${id}')">Güncellemeleri Kaydet</button>
-                        <button class="btn btn-danger btn-p" style="margin-top:10px; background:none;" onclick="delItem('ogretmenler','${id}')">Eğitmeni Kaldır</button>
-                    </div>
-                </div>`;
+            <div class="item-row">
+                <div class="item-header" onclick="toggleAccordion('teach-${id}')">
+                    <div><b>${data.adSoyad}</b><br><small>${data.brans}</small></div>
+                    <span style="color:var(--primary); font-weight:800; font-size:0.75rem">DÜZENLE</span>
+                </div>
+                <div id="teach-${id}" class="item-body">
+                    <label>Branş</label><input type="text" id="eb-${id}" value="${data.brans}">
+                    <label>Şifre</label><input type="text" id="ep-${id}" value="${data.sifre}">
+                    <label>Sınıf Yetkileri</label><div class="checklist">${chips}</div>
+                    <button class="btn btn-p" onclick="saveEdit('${id}')">Kaydet</button>
+                    <button class="btn btn-danger btn-p" style="margin-top:10px; background:none;" onclick="delItem('ogretmenler','${id}')">Eğitmeni Kaldır</button>
+                </div>
+            </div>`;
         });
     });
 
-    // --- LOGIC ---
-    window.addSingleStudent = async (cid) => {
-        const no = document.getElementById(`newStNo-${cid}`).value;
-        const name = document.getElementById(`newStName-${cid}`).value;
-        if(!no || !name) return;
-        const list = [...globalClasses[cid], { number: no, name: name }];
-        await updateDoc(doc(db, "siniflar", cid), { ogrenciler: list });
+    // --- CORE FUNCTIONS (VELİ ENTEGRASYONLU) ---
+
+    window.addClass = async () => {
+        const name = cName.value.toUpperCase().trim().replace(/\//g, "-"); 
+    if(!name) return alert("Sınıf kodu girin!");
+        const students = cList.value.split('\n').map(l => {
+            const p = l.trim().split(/\s+/);
+            return p.length >= 2 ? { number: p.shift(), name: p.join(' '), password: "12345" } : null;
+        }).filter(s => s);
+
+        try {
+            await setDoc(doc(db, "siniflar", name), { sinifAdi: name, ogrenciler: students });
+            
+            // Her öğrenci için Veli dökümanı oluştur
+            const promises = students.map(st => {
+                return setDoc(doc(db, "veliler", st.number), {
+                    adSoyad: st.name,
+                    ogrenciAdi: st.name,
+                    sifre: "12345",
+                    sifreDegisti: false,
+                    sinif: name
+                }, { merge: true });
+            });
+            await Promise.all(promises);
+            
+            cName.value = ""; cList.value = ""; alert("Sınıf ve Veli kayıtları oluşturuldu!");
+        } catch (e) { alert("Hata: " + e.message); }
     };
 
-    window.removeStudent = async (cid, idx) => {
-        if(!confirm("Emin misiniz?")) return;
-        const list = globalClasses[cid].filter((_, i) => i !== idx);
-        await updateDoc(doc(db, "siniflar", cid), { ogrenciler: list });
+    window.addSingleStudent = async (cid) => {
+        const no = document.getElementById(`newStNo-${cid}`).value.trim();
+        const name = document.getElementById(`newStName-${cid}`).value.trim();
+        if(!no || !name) return alert("Bilgileri doldurun!");
+
+        try {
+            const list = [...globalClasses[cid], { number: no, name: name, password: "12345" }];
+            await updateDoc(doc(db, "siniflar", cid), { ogrenciler: list });
+            
+            // Veli dökümanını oluştur
+            await setDoc(doc(db, "veliler", no), {
+                adSoyad: name,
+                ogrenciAdi: name,
+                sifre: "12345",
+                sifreDegisti: false,
+                sinif: cid
+            }, { merge: true });
+
+            document.getElementById(`newStNo-${cid}`).value = "";
+            document.getElementById(`newStName-${cid}`).value = "";
+            alert("Öğrenci ve Veli hesabı eklendi!");
+        } catch (e) { alert("Hata: " + e.message); }
+    };
+
+    window.resetStudentPass = async (cid, idx) => {
+        const student = globalClasses[cid][idx];
+        if(confirm(`${student.name} isimli öğrencinin şifresi "12345" olarak sıfırlansın mı?`)) {
+            try {
+                const list = [...globalClasses[cid]];
+                list[idx].password = "12345";
+                await updateDoc(doc(db, "siniflar", cid), { ogrenciler: list });
+
+                await updateDoc(doc(db, "veliler", student.number), {
+                    sifre: "12345",
+                    sifreDegisti: false
+                });
+                alert("Şifre sıfırlandı!");
+            } catch (e) { alert("Hata: " + e.message); }
+        }
     };
 
     window.updateStudent = async (cid, idx, field, val) => {
         const list = [...globalClasses[cid]];
+        const oldNo = list[idx].number;
         list[idx][field] = val;
         await updateDoc(doc(db, "siniflar", cid), { ogrenciler: list });
+        
+        // Eğer numara veya isim değişirse veli dökümanını da güncelle
+        if(field === 'name') await updateDoc(doc(db, "veliler", oldNo), { adSoyad: val, ogrenciAdi: val });
+    };
+
+    window.removeStudent = async (cid, idx) => {
+        if(!confirm("Öğrenciyi silmek istediğinize emin misiniz?")) return;
+        const studentNo = globalClasses[cid][idx].number;
+        const list = globalClasses[cid].filter((_, i) => i !== idx);
+        await updateDoc(doc(db, "siniflar", cid), { ogrenciler: list });
+        // İsteğe bağlı: Veli dökümanını da silebilirsiniz: await deleteDoc(doc(db, "veliler", studentNo));
+    };
+
+    window.addTeacher = async () => {
+        const name = tName.value.trim();
+        if(!name) return alert("İsim girin!");
+        const selected = Array.from(document.querySelectorAll('input[name="cSet"]:checked')).map(e => e.value);
+        let assigned = {};
+        selected.forEach(c => { if(globalClasses[c]) assigned[c] = globalClasses[c]; });
+        await setDoc(doc(db, "ogretmenler", name), { adSoyad: name, brans: tBranch.value, sifre: tPass.value, siniflar: assigned });
+        tName.value=""; tBranch.value=""; tPass.value=""; alert("Eğitmen Eklendi!");
     };
 
     window.saveEdit = async (id) => {
@@ -289,27 +347,8 @@
         const selected = Array.from(document.querySelectorAll(`input[name="edit_c_${id}"]:checked`)).map(e => e.value);
         let assigned = {};
         selected.forEach(c => { if(globalClasses[c]) assigned[c] = globalClasses[c]; });
-        await setDoc(doc(db, "ogretmenler", id), { adSoyad: id, brans, sifre, siniflar: assigned });
-        alert("Başarıyla Güncellendi");
-    };
-
-    window.addTeacher = async () => {
-        const name = tName.value.trim();
-        const selected = Array.from(document.querySelectorAll('input[name="cSet"]:checked')).map(e => e.value);
-        let assigned = {};
-        selected.forEach(c => { if(globalClasses[c]) assigned[c] = globalClasses[c]; });
-        await setDoc(doc(db, "ogretmenler", name), { adSoyad: name, brans: tBranch.value, sifre: tPass.value, siniflar: assigned });
-        tName.value=""; tBranch.value=""; tPass.value=""; alert("Eklendi!");
-    };
-
-    window.addClass = async () => {
-        const name = cName.value.toUpperCase().trim();
-        const students = cList.value.split('\n').map(l => {
-            const p = l.trim().split(' ');
-            return p.length >= 2 ? { number: p.shift(), name: p.join(' ') } : null;
-        }).filter(s => s);
-        await setDoc(doc(db, "siniflar", name), { sinifAdi: name, ogrenciler: students });
-        cName.value = ""; cList.value = ""; alert("Sınıf Oluşturuldu!");
+        await updateDoc(doc(db, "ogretmenler", id), { brans, sifre, siniflar: assigned });
+        alert("Güncellendi!");
     };
 
     window.toggleAccordion = (id) => {
@@ -319,7 +358,7 @@
         el.style.display = isV ? 'none' : 'block';
     };
 
-    window.delItem = async (coll, id) => { if(confirm("Kayıt silinecek, emin misiniz?")) await deleteDoc(doc(db, coll, id)); };
+    window.delItem = async (coll, id) => { if(confirm("Emin misiniz?")) await deleteDoc(doc(db, coll, id)); };
 
 </script>
 </body>
