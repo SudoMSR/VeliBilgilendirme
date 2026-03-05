@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ödev Takip Sistemi - Veli Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #10b981; --primary-dark: #059669; --bg: #f4f7fa; --white: #ffffff; --text-main: #0f172a; --text-muted: #64748b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); }
+        .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-wrapper { background: linear-gradient(135deg, #10b981 0%, #4f46e5 100%); min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 50px 40px; border-radius: 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.2); width: 100%; max-width: 480px; text-align: center; }
+        .btn-login { width: 100%; padding: 18px; border-radius: 18px; background: var(--primary); color: white; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; margin-top: 10px; font-size: 1.1rem; }
+        .input-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; margin-left: 5px; }
+        input { width: 100%; padding: 16px; border-radius: 18px; border: 2px solid #edf2f7; background: #f8fafc; font-size: 1rem; }
+
+        header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); letter-spacing: -1px; }
+        .user-nav { display: flex; align-items: center; gap: 10px; }
+        .student-chip { background: #ecfdf5; color: var(--primary); padding: 8px 18px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; }
+        
+        main { width: 95%; max-width: 1400px; margin: 40px auto; padding-bottom: 50px; }
+        .hw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        .hw-card { background: var(--white); border-radius: 28px; padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.02); display: flex; flex-direction: column; border: 1px solid #f1f5f9; transition: 0.3s; }
+        .hw-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.05); }
+
+        .hw-branch { font-size: 0.8rem; font-weight: 800; color: #4f46e5; text-transform: uppercase; margin-bottom: 5px; }
+        .hw-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; line-height: 1.3; }
+        .hw-desc { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+        
+        .btn-read { width: 100%; padding: 15px; border-radius: 15px; background: var(--primary); color: white; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; }
+        .status-done { padding: 15px; border-radius: 15px; background: #ecfdf5; color: var(--primary); font-weight: 800; text-align: center; }
+        
+        /* DOSYA İNDİRME BUTONU TASARIMI */
+        .btn-download { display: block; text-align: center; background: #e0e7ff; color: #4f46e5; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 0.9rem; margin-bottom: 15px; border: 1px dashed #4f46e5; transition: 0.3s; }
+        .btn-download:hover { background: #c7d2fe; }
+
+        .btn-action { border: none; padding: 8px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .pw-btn { background: #f1f5f9; color: #475569; }
+        .logout-btn { background: #fee2e2; color: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div id="loginSection" class="login-wrapper">
+    <div class="login-card">
+        <div style="font-size: 2.5rem; margin-bottom: 20px;">🎓</div>
+        <h2>Veli Erişimi</h2>
+        <p style="color:#64748b; margin-bottom:30px">Çocuğunuzun ödevlerini anlık takip edin.</p>
+        <div class="input-group"><label>Okul Numarası</label><input type="text" id="vNo" placeholder="Örn: 105"></div>
+        <div class="input-group"><label>Şifre</label><input type="password" id="vPass" placeholder="••••••••"></div>
+        <button class="btn-login" onclick="handleLogin()">Giriş Yap</button>
+    </div>
+</div>
+
+<div id="passSection" class="overlay" style="display:none; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px);">
+    <div class="login-card">
+        <h2>Şifreyi Güncelle</h2>
+        <input type="password" id="newVPass" placeholder="Yeni Şifre">
+        <button class="btn-login" onclick="changePass()">Şifremi Kaydet</button>
+        <button onclick="document.getElementById('passSection').style.display='none'" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer; font-weight:700;">Vazgeç</button>
+    </div>
+</div>
+
+<div id="mainSection" style="display:none">
+    <header>
+        <div class="logo">ÖDEV TAKİP SİSTEMİ</div>
+        <div class="user-nav">
+            <div id="studentInfo" class="student-chip"></div>
+            <button class="btn-action pw-btn" onclick="document.getElementById('passSection').style.display='flex'">🔑 Şifre</button>
+            <button class="btn-action logout-btn" onclick="location.reload()">Çıkış Yap</button>
+        </div>
+    </header>
+    <main>
+        <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 30px;">🚀 Aktif Ödevler</div>
+        <div id="activeGrid" class="hw-grid"></div>
+    </main>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, query, where, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0", authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com", projectId: "msr-odev-takip-ve-duyuru", storageBucket: "msr-odev-takip-ve-duyuru.firebasestorage.app", messagingSenderId: "282364522003", appId: "1:282364522003:web:b6320b950230ba6c6c19e6" };
+    const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+    let curNo = "", curStudent = "", curClass = "";
+
+    window.handleLogin = async function() {
+        const no = document.getElementById('vNo').value.trim();
+        const p = document.getElementById('vPass').value.trim();
+        const snap = await getDoc(doc(db, "veliler", no));
+        if(snap.exists() && snap.data().sifre === p) {
+            curNo = no; curStudent = snap.data().adSoyad; curClass = snap.data().sinif;
+            if(!snap.data().sifreDegisti) document.getElementById('passSection').style.display = "flex"; else enterApp();
+        } else alert("Numara veya şifre hatalı!");
+    }
+
+    window.changePass = async function() {
+        const np = document.getElementById('newVPass').value.trim();
+        if(np.length < 4) return alert("Şifre en az 4 karakter olmalıdır!");
+        await updateDoc(doc(db, "veliler", curNo), { sifre: np, sifreDegisti: true });
+        enterApp();
+    }
+
+    function enterApp() {
+        document.getElementById('loginSection').style.display = "none"; document.getElementById('passSection').style.display = "none";
+        document.getElementById('mainSection').style.display = "block";
+        document.getElementById('studentInfo').innerText = `🎓 ${curStudent} | ${curClass}`; loadHws();
+    }
+
+    function loadHws() {
+        onSnapshot(query(collection(db, "odevler"), where("sinif", "==", curClass)), (snap) => {
+            const grid = document.getElementById('activeGrid'); grid.innerHTML = "";
+            snap.forEach(d => {
+                const data = d.data(); const read = data.okuyanlar && data.okuyanlar.includes(curStudent);
+                
+                // EĞER DOSYA VARSA İNDİRME BUTONU OLUŞTURULUYOR
+                const fileHtml = data.dosyaUrl ? `<a href="${data.dosyaUrl}" target="_blank" class="btn-download">📄 İndir: ${data.dosyaAdi}</a>` : '';
+
+                grid.innerHTML += `
+                    <div class="hw-card">
+                        <div class="hw-branch">📚 ${data.ders || "Genel"}</div>
+                        <div class="hw-title">${data.baslik}</div>
+                        <div class="hw-desc">${data.aciklama || ""}</div>
+                        
+                        ${fileHtml} <div style="margin-top:auto; border-top:1px solid #f1f5f9; padding-top:20px;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                                <strong>👤 ${data.ogretmenAdi}</strong>
+                                <span style="color:#64748b">📅 ${data.verilmeTarihi || '-'}</span>
+                            </div>
+                            <div style="text-align:right; font-weight:800; font-size:0.85rem; margin-top:5px; color:#10b981">🏁 Teslim: ${data.teslimTarihi}</div>
+                            ${!read ? `<button class="btn-read" style="margin-top:15px" onclick="markRead('${d.id}')">Okudum</button>` : `<div class="status-done" style="margin-top:15px">✅ Onaylandı</div>`}
+                        </div>
+                    </div>`;
+            });
+        });
+    }
+
+    window.markRead = async (id) => { await updateDoc(doc(db, "odevler", id), { okuyanlar: arrayUnion(curStudent) }); }
+</script>
+</body>
+</html>
