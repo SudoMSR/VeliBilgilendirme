@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijital Eğitim Portalı | Giriş</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #eef2ff;
+            --secondary: #10b981;
+            --secondary-light: #ecfdf5;
+            --bg: #fdfeff;
+            --text-main: #0f172a;
+            --text-slim: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.04) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 1100px;
+            padding: 40px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 70px;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            background: linear-gradient(90deg, #1e293b, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 35px;
+        }
+
+        .portal-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 60px 40px;
+            border-radius: 40px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+        }
+
+        .portal-card:hover {
+            transform: translateY(-15px);
+            background: #ffffff;
+            box-shadow: 0 30px 60px -12px rgba(79, 70, 229, 0.12);
+            border-color: var(--primary-light);
+        }
+
+        .icon-box {
+            width: 90px;
+            height: 90px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            transition: 0.3s;
+        }
+
+        .teacher .icon-box { background: var(--primary-light); color: var(--primary); }
+        .parent .icon-box { background: var(--secondary-light); color: var(--secondary); }
+        .admin .icon-box { background: #f1f5f9; color: var(--text-main); }
+
+        .portal-card h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+
+        .portal-card p {
+            font-size: 1rem;
+            color: var(--text-slim);
+            line-height: 1.6;
+            margin-bottom: 35px;
+        }
+
+        .action-btn {
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .teacher .action-btn { background: var(--primary); color: white; }
+        .parent .action-btn { background: var(--secondary); color: white; }
+        
+        .admin-links { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        .admin-links a { 
+            text-decoration: none; 
+            background: #f1f5f9; 
+            color: #475569; 
+            padding: 14px 5px; 
+            border-radius: 14px; 
+            font-size: 0.8rem; 
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        .admin-links a:hover { background: #e2e8f0; color: #1e293b; }
+
+        @media (max-width: 950px) {
+            .portal-grid { grid-template-columns: 1fr; }
+            body { height: auto; padding: 60px 20px; overflow-y: auto; }
+            header h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <header>
+        <h1>Portal Girişi</h1>
+    </header>
+
+    <div class="portal-grid">
+        <a href="ogretmen1.html" class="portal-card teacher">
+            <div class="icon-box">👨‍🏫</div>
+            <h2>Öğretmen</h2>
+            <p>Ödev yönetimi, dosya paylaşımı ve anlık öğrenci takip merkezi.</p>
+            <div class="action-btn">Eğitmen Girişi</div>
+        </a>
+
+        <a href="Veli1.html" class="portal-card parent">
+            <div class="icon-box">👪</div>
+            <h2>Veli & Öğrenci</h2>
+            <p>Güncel duyurular, öğretmen notları ve dijital materyallere erişim.</p>
+            <div class="action-btn">Veli Girişi</div>
+        </a>
+
+        <div class="portal-card admin">
+            <div class="icon-box">🛡️</div>
+            <h2>Yönetim</h2>
+            <p>Sistem genel yetkilendirme ve veri tabanı düzenleme paneli.</p>
+            <div class="admin-links">
+                <a href="admin_ogretmen1.html">Öğretmen Yön.</a>
+                <a href="admin_veli1.html">Veli Yön.</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

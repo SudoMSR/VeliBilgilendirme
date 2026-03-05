@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ödev Takip - Öğretmen Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #2563eb; --bg: #f8fafc; --white: #ffffff; --text: #1e293b; --danger: #fee2e2; --danger-text: #ef4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); }
+        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-card { background: var(--white); padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 360px; text-align: center; }
+        header { background: var(--white); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        header strong { color: var(--p); letter-spacing: 1px; font-size: 1.2rem; }
+        .user-nav { display: flex; align-items: center; gap: 10px; }
+        .teacher-badge { background: #eff6ff; color: var(--p); padding: 6px 15px; border-radius: 30px; font-weight: 600; font-size: 0.85rem; }
+        .btn-mini { border: none; padding: 8px 12px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
+        .btn-pw { background: #f1f5f9; color: #475569; }
+        .logout-btn { background: var(--danger); color: var(--danger-text); }
+        main { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .card { background: var(--white); border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; }
+        input[type="file"] { background: #f8fafc; padding: 10px; font-size: 0.9rem; cursor: pointer; border: 2px dashed #cbd5e1; }
+        button.primary { background: var(--p); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.3s; }
+        button.primary:disabled { background: #94a3b8; cursor: not-allowed; }
+        .tracking-card { border-left: 6px solid var(--p); padding: 16px; background: #fff; margin-bottom: 16px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .read-badge { background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+        .file-badge { background: #e0e7ff; color: #4f46e5; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; display: inline-block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="loginBox" class="overlay" style="background: var(--bg); backdrop-filter: none;">
+    <div class="login-card">
+        <h2 style="margin-bottom:20px; color:var(--p);">Öğretmen Girişi</h2>
+        <input type="text" id="lName" placeholder="Ad Soyad">
+        <input type="password" id="lPass" placeholder="Şifre">
+        <button class="primary" onclick="login()">Giriş Yap</button>
+    </div>
+</div>
+
+<header>
+    <strong>ÖDEV DUYURU & TAKİP</strong>
+    <div class="user-nav" id="navArea" style="display:none">
+        <span id="tInfo" class="teacher-badge"></span>
+        <button class="btn-mini logout-btn" onclick="location.reload()">Çıkış</button>
+    </div>
+</header>
+
+<main id="mainContent" style="display:none">
+    <div class="card" id="formArea">
+        <h3 id="formTitle">🚀 Yeni Ödev Tanımla</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <select id="cSel" onchange="loadStudents()"><option value="">Sınıf Seçin</option></select>
+            <select id="sSel"><option value="all">Tüm Sınıf</option></select>
+        </div>
+        <input type="text" id="title" placeholder="Ödev Başlığı">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div><label style="font-size:0.8rem; font-weight:700">📅 Verilme</label><input type="date" id="givenDate"></div>
+            <div><label style="font-size:0.8rem; font-weight:700">🏁 Teslim</label><input type="date" id="dueDate"></div>
+        </div>
+        <textarea id="desc" rows="4" placeholder="Ödev detayları..."></textarea>
+        
+        <div style="margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 10px;">
+            <label style="font-size:0.85rem; font-weight:800; color:#475569; display:block; margin-bottom:8px;">📎 Dosya veya PDF Ekle (İsteğe Bağlı)</label>
+            <input type="file" id="hwFile" accept=".pdf,.doc,.docx,.jpg,.png,.jpeg">
+        </div>
+
+        <button class="primary" id="submitBtn" onclick="sendHw()">Ödevi Gönder</button>
+    </div>
+    <div id="trackList"><h3>📊 Gönderilen Ödevler</h3><div id="homeworkContainer"></div></div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0", authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com", projectId: "msr-odev-takip-ve-duyuru", storageBucket: "msr-odev-takip-ve-duyuru.firebasestorage.app", messagingSenderId: "282364522003", appId: "1:282364522003:web:b6320b950230ba6c6c19e6" };
+    const app = initializeApp(firebaseConfig); 
+    const db = getFirestore(app);
+    const storage = getStorage(app); 
+
+    let curName = "", curBranch = "", curClasses = {};
+
+    window.login = async function() {
+        const n = document.getElementById('lName').value.trim();
+        const p = document.getElementById('lPass').value.trim();
+        const snap = await getDoc(doc(db, "ogretmenler", n));
+        if(snap.exists() && snap.data().sifre === p) {
+            curName = n; curBranch = snap.data().brans || "Genel"; curClasses = snap.data().siniflar;
+            document.getElementById('loginBox').style.display = "none";
+            document.getElementById('mainContent').style.display = "block";
+            document.getElementById('navArea').style.display = "flex";
+            document.getElementById('tInfo').innerText = curName;
+            Object.keys(curClasses).forEach(c => document.getElementById('cSel').innerHTML += `<option value="${c}">${c}</option>`);
+            startTrack();
+        } else alert("Hatalı giriş!");
+    }
+
+    window.loadStudents = function() {
+        const c = document.getElementById('cSel').value;
+        const sSel = document.getElementById('sSel'); sSel.innerHTML = '<option value="all">Tüm Sınıf</option>';
+        if(c && curClasses[c]) curClasses[c].forEach(s => sSel.innerHTML += `<option value="${s.name}">${s.number} - ${s.name}</option>`);
+    }
+
+    window.sendHw = async function() {
+        const c = document.getElementById('cSel').value; const t = document.getElementById('title').value;
+        const gDate = document.getElementById('givenDate').value; const dDate = document.getElementById('dueDate').value;
+        if(!c || !t || !gDate || !dDate) return alert("Lütfen sınıfları ve tarihleri eksiksiz girin.");
+
+        const btn = document.getElementById('submitBtn');
+        const fileInput = document.getElementById('hwFile');
+        const file = fileInput.files[0];
+
+        let fileUrl = null;
+        let fileName = null;
+
+        btn.disabled = true;
+        btn.innerText = file ? "Dosya Yükleniyor, Lütfen Bekleyin..." : "Ödev Gönderiliyor...";
+
+        try {
+            if(file) {
+                // Türkçe karakter ve boşluk sorununu çözen dosya ismi
+                const safeFileName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+                const uniqueName = Date.now() + '_' + safeFileName;
+                
+                // Klasör adındaki "ı" harfi "i" yapıldı
+                const storageRef = ref(storage, 'odev_dosyalari/' + uniqueName);
+                const snapshot = await uploadBytes(storageRef, file);
+                fileUrl = await getDownloadURL(snapshot.ref);
+                fileName = file.name;
+            }
+
+            await addDoc(collection(db, "odevler"), { 
+                ogretmenAdi: curName, ders: curBranch, sinif: c, ogrenci: document.getElementById('sSel').value, 
+                baslik: t, verilmeTarihi: gDate, teslimTarihi: dDate, aciklama: document.getElementById('desc').value, 
+                tarih: serverTimestamp(), okuyanlar: [],
+                dosyaUrl: fileUrl, 
+                dosyaAdi: fileName 
+            });
+            
+            alert("Ödev ve dosya başarıyla gönderildi!");
+            document.getElementById('title').value = ""; document.getElementById('desc').value = ""; document.getElementById('hwFile').value = "";
+        } catch (error) {
+            console.error(error);
+            alert("Hata oluştu! Lütfen Firebase Storage yetkilerini kontrol edin. Hata Kodu: " + error.code);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Ödevi Gönder";
+        }
+    }
+
+    function startTrack() {
+        onSnapshot(query(collection(db, "odevler"), where("ogretmenAdi", "==", curName)), (snap) => {
+            const cont = document.getElementById('homeworkContainer'); cont.innerHTML = "";
+            snap.forEach(docSnap => {
+                const data = docSnap.data(); const okuyanlar = data.okuyanlar || [];
+                const fileBadge = data.dosyaUrl ? `<div class="file-badge">📎 Ek: ${data.dosyaAdi}</div>` : '';
+                
+                cont.innerHTML += `<div class="tracking-card"><div style="display:flex; justify-content:space-between"><strong>${data.baslik} (${data.sinif})</strong><span class="read-badge">${okuyanlar.length} Okundu</span></div><div style="font-size:0.8rem; color:gray; margin:5px 0">🏁 Teslim: ${data.teslimTarihi}</div>${fileBadge}<div style="font-size:0.8rem; background:#f1f5f9; padding:8px; border-radius:8px; margin-top:8px;">✔️ ${okuyanlar.length > 0 ? okuyanlar.join(', ') : 'Kimse okumadı.'}</div><div style="margin-top:10px; display:flex; gap:10px"><button class="btn-mini" style="background:#ef4444; color:white; flex:1" onclick="deleteHw('${docSnap.id}')">Sil</button></div></div>`;
+            });
+        });
+    }
+    window.deleteHw = async (id) => { if(confirm("Silinsin mi?")) await deleteDoc(doc(db, "odevler", id)); };
+</script>
+</body>
+</html>
