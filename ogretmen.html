@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Öğretmen Paneli</title>
+    <link rel="icon" type="image/jpeg" href="logo2.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    </head>
+<body>
+
+<header>
+    <div class="header-top">
+        <div class="brand">
+            <img src="logo2.jpeg" style="width:34px; border-radius:10px"> 
+            Öğretmen Paneli
+        </div>
+        <div style="text-align: right">
+            <div id="activeTeacher" style="font-size: 0.85rem; font-weight: 800; color: var(--primary)">...</div>
+            <button onclick="logout()" style="background:none; border:none; color:var(--danger); font-size:0.7rem; font-weight:800; cursor:pointer;">OTURUMU KAPAT</button>
+        </div>
+    </div>
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="switchTab('odevEkle', this)">Ödev Gönder</button>
+        <button class="nav-btn" onclick="switchTab('aktiviteBildir', this)">Aktivite</button>
+        <button class="nav-btn" onclick="switchTab('odevTakip', this)">Takip</button>
+    </div>
+</header>
+
+<main>
+    <div id="odevEkle" class="tab-content active">
+        <div class="card">
+            <h3>🚀 Yeni Ödev Yayınla</h3>
+            <select id="hwClass" onchange="loadStudentsForHw()">
+                <option value="">Sınıf Seçiniz</option>
+            </select>
+            
+            <div id="hwStudentArea" style="display:none; margin-bottom: 20px;">
+                <div class="st-card" onclick="toggleAllHw()" style="margin-bottom: 15px; border-style: dashed; border-color: var(--primary)">
+                    <span style="font-weight:800; color:var(--primary)">TÜM SINIFI SEÇ</span>
+                    <div class="check-circle" id="selectAllCircle"></div>
+                </div>
+                <div id="hwStudents" class="student-grid"></div>
+            </div>
+
+            <input type="text" id="hwTitle" placeholder="Ödev Başlığı">
+            <div class="date-container">
+                <input type="date" id="hwGiveDate" title="Veriliş Tarihi">
+                <input type="date" id="hwDueDate" title="Teslim Tarihi">
+            </div>
+            <textarea id="hwDesc" rows="3" placeholder="Ödev detayları..."></textarea>
+            <button class="btn-modern" id="submitHwBtn" onclick="submitHw()">ÖDEVİ YAYINLA</button>
+        </div>
+    </div>
+
+    <div id="aktiviteBildir" class="tab-content">
+        <div class="card">
+            <h3>✨ Davranış Takibi</h3>
+            <select id="actClass" onchange="loadStudentsForAct()">
+                <option value="">Sınıf Seçiniz</option>
+            </select>
+            <div id="actStudentGrid" class="student-grid" style="margin-top:20px"></div>
+        </div>
+
+        <div class="card" style="padding: 18px; background: rgba(30, 41, 59, 0.4); margin-top: 15px;">
+    <div onclick="toggleAccordion()" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+        <h3 style="margin: 0; font-size: 1rem; color: var(--text-muted);">📜 Gönderilen Son Aktiviteler</h3>
+        <span id="accIcon" style="transition: 0.3s; color: var(--primary); font-weight: bold;">▼</span>
+    </div>
+    
+    <div id="sentActivities" style="display: none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+        <div id="pastActivitiesList">
+            </div>
+    </div>
+</div>
+    </div>
+
+    <div id="odevTakip" class="tab-content">
+        <h3>📋 Ödev Durumları</h3>
+        <div id="trackingList">
+            </div>
+    </div>
+</main>
+
+<div id="readersModal" class="modal">
+    <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <h3 style="margin: 0;">👁️ Görüntüleyenler</h3>
+            <button onclick="closeModal('readersModal')" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <p id="readerStats" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);"></p>
+        <ul id="readersList" class="readers-list">
+            </ul>
+        <button class="btn-modern" onclick="closeModal('readersModal')">TAMAM</button>
+    </div>
+</div>
+
+<div id="actModal" class="modal">
+    <div class="modal-body">
+        <h3 id="modalStudentName">Öğrenci Adı</h3>
+        <div id="tagList" class="tag-container"></div>
+        
+        <div style="background: rgba(15,23,42,0.4); padding:15px; border-radius:20px; border:1px solid var(--border)">
+            <div style="display:flex; gap:5px; margin-bottom:10px">
+                <button id="typePos" class="btn-ghost" style="flex:1" onclick="setNewTagType('positive')">OLUMLU</button>
+                <button id="typeNeg" class="btn-ghost" style="flex:1" onclick="setNewTagType('negative')">OLUMSUZ</button>
+            </div>
+            <div style="display:flex; gap:8px">
+                <input type="text" id="customTagInput" placeholder="Yeni seçenek..." style="margin:0">
+                <button class="btn-modern" style="margin:0; width:80px; font-size:0.7rem" onclick="addNewTag()">EKLE</button>
+            </div>
+        </div>
+
+        <textarea id="actNote" placeholder="Veliye not..."></textarea>
+        <button class="btn-modern" onclick="saveActivity()">KAYDET VE GÖNDER</button>
+        <button onclick="closeModal('actModal')" style="width:100%; background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer; font-weight:700">İPTAL</button>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.5);
+        --bg: #0f172a; 
+        --card-bg: #1e293b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: rgba(255, 255, 255, 0.1);
+        --danger: #ff4757;
+        --success: #2ed573;
+        --radius: 20px;
+    }
+
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+    }
+
+    body { 
+        background-color: var(--bg); 
+        color: var(--text-main); 
+        min-height: 100vh; 
+        overflow-x: hidden; 
+    }
+
+    /* --- HEADER & NAV --- */
+    header { 
+        background: rgba(30, 41, 59, 0.7); 
+        backdrop-filter: blur(20px);
+        padding: 15px 5%; 
+        border-bottom: 1px solid var(--border);
+        position: sticky; 
+        top: 0; 
+        z-index: 100;
+    }
+
+    .header-top { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 15px; 
+    }
+
+    .brand { 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        font-weight: 800; 
+        font-size: 1.2rem; 
+    }
+    
+    .nav-bar { 
+        display: flex; 
+        background: rgba(15, 23, 42, 0.5); 
+        padding: 6px; 
+        border-radius: 18px; 
+        gap: 6px; 
+        border: 1px solid var(--border); 
+    }
+
+    .nav-btn { 
+        flex: 1; 
+        padding: 12px; 
+        border: none; 
+        background: none; 
+        color: var(--text-muted); 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        cursor: pointer; 
+        border-radius: 14px; 
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+
+    .nav-btn.active { 
+        background: var(--primary); 
+        color: white; 
+        box-shadow: 0 8px 15px var(--primary-glow); 
+    }
+
+    /* --- MAIN CONTENT --- */
+    main { 
+        max-width: 800px; 
+        margin: 25px auto; 
+        padding: 0 20px; 
+    }
+
+    .card { 
+        background: var(--card-bg); 
+        border-radius: 28px; 
+        padding: 30px; 
+        border: 1px solid var(--border); 
+        margin-bottom: 25px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+    }
+
+    h3 { 
+        margin-bottom: 25px; 
+        font-size: 1.25rem; 
+        font-weight: 800; 
+        color: #fff; 
+    }
+
+    /* --- INPUTS --- */
+    input, select, textarea { 
+        width: 100%; 
+        padding: 16px; 
+        margin: 10px 0; 
+        border: 1px solid var(--border); 
+        border-radius: 16px; 
+        background: rgba(15, 23, 42, 0.4); 
+        color: white; 
+        font-size: 0.95rem; 
+        transition: 0.3s;
+    }
+
+    input:focus { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 4px var(--primary-glow); 
+        outline: none; 
+    }
+
+    /* Tarih alanları için özel düzenleme */
+    .date-container {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap; /* Taşmayı önleyen anahtar özellik */
+    }
+
+    .date-container input {
+        flex: 1;
+        min-width: 140px; /* Çok daralmasını önler */
+    }
+
+    /* --- BUTTONS --- */
+    .btn-modern {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white; 
+        border: none; 
+        padding: 18px; 
+        border-radius: 18px;
+        font-weight: 800; 
+        font-size: 0.95rem; 
+        cursor: pointer;
+        transition: 0.3s ease; 
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 10px;
+        width: 100%; 
+        margin-top: 15px;
+    }
+
+    .btn-modern:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 12px 25px var(--primary-glow); 
+    }
+
+    .btn-ghost {
+        background: rgba(255, 255, 255, 0.05); 
+        color: var(--text-muted);
+        border: 1px solid var(--border); 
+        padding: 10px 20px; 
+        border-radius: 12px;
+        font-weight: 700; 
+        cursor: pointer; 
+        transition: 0.3s;
+    }
+
+    .btn-ghost:hover { 
+        background: rgba(255, 255, 255, 0.1); 
+        color: #fff; 
+    }
+
+    /* --- STUDENT GRID --- */
+    .student-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+        gap: 12px; 
+        max-height: 380px; 
+        overflow-y: auto; 
+        padding-right: 5px; 
+    }
+
+    .st-card { 
+        background: rgba(15, 23, 42, 0.3); 
+        border: 1px solid var(--border); 
+        padding: 15px; 
+        border-radius: 18px; 
+        cursor: pointer; 
+        transition: 0.3s;
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between;
+    }
+
+    .st-card:hover { 
+        border-color: var(--primary); 
+        background: rgba(99, 102, 241, 0.05); 
+    }
+
+    .st-card.selected { 
+        border-color: var(--primary); 
+        background: var(--primary-glow); 
+    }
+
+    .check-circle { 
+        width: 22px; 
+        height: 22px; 
+        border: 2px solid var(--border); 
+        border-radius: 50%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        transition: 0.3s; 
+    }
+
+    .st-card.selected .check-circle { 
+        background: var(--primary); 
+        border-color: var(--primary); 
+    }
+
+    .st-card.selected .check-circle::after { 
+        content: '✓'; 
+        color: white; 
+        font-size: 12px; 
+        font-weight: 900; 
+    }
+
+    /* --- TAGS --- */
+    .tag-container { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 10px; 
+        margin: 15px 0; 
+    }
+
+    .tag { 
+        padding: 12px 18px; 
+        border-radius: 14px; 
+        font-size: 0.85rem; 
+        font-weight: 700; 
+        cursor: pointer; 
+        transition: 0.3s; 
+        border: 1px solid var(--border); 
+        background: rgba(255,255,255,0.03); 
+        color: var(--text-muted);
+    }
+
+    .tag.positive.selected { background: var(--success); color: #000; border-color: var(--success); box-shadow: 0 0 15px rgba(46, 213, 115, 0.4); }
+    .tag.negative.selected { background: var(--danger); color: #fff; border-color: var(--danger); box-shadow: 0 0 15px rgba(255, 71, 87, 0.4); }
+
+    /* --- MODAL --- */
+    .modal { 
+        display: none; 
+        position: fixed; 
+        inset: 0; 
+        background: rgba(0,0,0,0.85); 
+        backdrop-filter: blur(12px); 
+        z-index: 1000; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 20px; 
+    }
+
+    .modal-body { 
+        background: var(--card-bg); 
+        padding: 30px; 
+        border-radius: 32px; 
+        width: 100%; 
+        max-width: 450px; 
+        border: 1px solid var(--border); 
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5); 
+    }
+
+    .readers-list { 
+        list-style: none; 
+        margin: 15px 0; 
+        max-height: 250px; 
+        overflow-y: auto; 
+    }
+
+    .readers-list li { 
+        padding: 12px; 
+        border-bottom: 1px solid var(--border); 
+        display: flex; 
+        align-items: center; 
+        gap: 10px; 
+        font-weight: 500; 
+    }
+
+    /* --- TRACKING ITEMS --- */
+    .track-item { 
+        background: var(--card-bg); 
+        border: 1px solid var(--border); 
+        padding: 25px; 
+        border-radius: 24px; 
+        margin-bottom: 18px; 
+        transition: 0.3s;
+    }
+
+    .track-item:hover { transform: scale(1.01); border-color: var(--primary); }
+
+    .read-badge { 
+        background: var(--primary-glow); 
+        color: var(--primary); 
+        padding: 6px 12px; 
+        border-radius: 10px; 
+        font-size: 0.75rem; 
+        font-weight: 800; 
+        cursor: pointer;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: slideUp 0.4s ease; }
+
+    @keyframes slideUp { 
+        from { opacity: 0; transform: translateY(20px); } 
+        to { opacity: 1; transform: translateY(0); } 
+    }
+
+    /* --- RESPONSIVE FIXES --- */
+    @media (max-width: 600px) {
+        .date-container {
+            flex-direction: column;
+            gap: 0;
+        }
+        .date-container input {
+            width: 100%;
+        }
+        .card {
+            padding: 20px;
+        }
+        .header-top {
+            flex-direction: column;
+            gap: 10px;
+            text-align: center;
+        }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+    /* Aktivite Arşivi İçin Özel Stiller */
+.activity-log-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.activity-info strong { color: var(--primary); font-size: 0.9rem; }
+.activity-tags { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+
+.activity-actions { display: flex; gap: 8px; }
+.btn-mini-delete {
+    background: rgba(255, 71, 87, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(255, 71, 87, 0.2);
+    padding: 5px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.btn-mini-delete:hover { background: var(--danger); color: white; }
+</style>
+
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, collection, addDoc, updateDoc, getDocs, deleteDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // 1. OTURUM KONTROLÜ
+    const sessionData = JSON.parse(localStorage.getItem('teacherSession'));
+    if (!sessionData) window.location.href = "ogretmenlogin.html";
+    const { name: tName, branch: tBranch, classes: tClasses } = sessionData;
+    document.getElementById('activeTeacher').innerText = `${tName} (${tBranch})`;
+
+    // 2. FIREBASE YAPILANDIRMASI
+    const firebaseConfig = { 
+        apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0", 
+        authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com", 
+        projectId: "msr-odev-takip-ve-duyuru", 
+        appId: "1:282364522003:web:b6320b950230ba6c6c19e6" 
+    };
+    
+    const app = initializeApp(firebaseConfig); 
+    const db = getFirestore(app);
+    let editingHwId = null;
+    let currentNewTagType = 'positive';
+
+    // 3. SEKME YÖNETİMİ
+    window.switchTab = (id, btn) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    };
+
+    // 4. SINIF SEÇİM KUTULARINI DOLDUR
+    ['hwClass', 'actClass'].forEach(id => {
+        Object.keys(tClasses).sort().forEach(c => {
+            document.getElementById(id).innerHTML += `<option value="${c}">${c}</option>`;
+        });
+    });
+
+    // 5. ÖDEV İŞLEMLERİ
+    window.loadStudentsForHw = () => {
+        const c = document.getElementById('hwClass').value;
+        const cont = document.getElementById('hwStudents');
+        document.getElementById('hwStudentArea').style.display = c ? 'block' : 'none';
+        cont.innerHTML = "";
+        if(c && tClasses[c]) {
+            tClasses[c].sort((a,b)=>a.number-b.number).forEach(s => {
+                cont.innerHTML += `
+                    <div class="st-card hw-st-card" onclick="this.classList.toggle('selected')" data-name="${s.name}">
+                        <span><b>#${s.number}</b> ${s.name}</span>
+                        <div class="check-circle"></div>
+                    </div>`;
+            });
+        }
+    };
+
+    window.toggleAllHw = () => {
+        const cards = document.querySelectorAll('.hw-st-card');
+        const isAllSelected = Array.from(cards).every(c => c.classList.contains('selected'));
+        cards.forEach(c => isAllSelected ? c.classList.remove('selected') : c.classList.add('selected'));
+    };
+
+    window.submitHw = async () => {
+        const selected = Array.from(document.querySelectorAll('.hw-st-card.selected')).map(c => c.dataset.name);
+        const title = document.getElementById('hwTitle').value;
+        if(!title || selected.length === 0) return alert("Hata: Başlık ve öğrenci seçilmelidir.");
+
+        const payload = {
+            ogretmenAdi: tName, ders: tBranch, sinif: document.getElementById('hwClass').value,
+            baslik: title, verilmeTarihi: document.getElementById('hwGiveDate').value,
+            teslimTarihi: document.getElementById('hwDueDate').value,
+            aciklama: document.getElementById('hwDesc').value,
+            ogrenciler: selected, tarih: serverTimestamp()
+        };
+
+        try {
+            if(editingHwId) {
+                await updateDoc(doc(db, "odevler", editingHwId), payload);
+                editingHwId = null;
+            } else {
+                payload.okuyanlar = []; // Yeni ödevde okuyanlar listesi boş başlar
+                await addDoc(collection(db, "odevler"), payload);
+            }
+            alert("İşlem Başarılı!"); location.reload();
+        } catch (e) { alert("Hata oluştu: " + e.message); }
+    };
+
+    // 6. TAKİP LİSTESİ VE OKUNDU TAKİBİ (Real-time)
+    onSnapshot(query(collection(db, "odevler"), where("ogretmenAdi", "==", tName)), (snap) => {
+        const cont = document.getElementById('trackingList'); 
+        cont.innerHTML = "";
+        
+        snap.docs.sort((a,b) => (b.data().tarih?.seconds || 0) - (a.data().tarih?.seconds || 0)).forEach(docSnap => {
+            const d = docSnap.data();
+            const okuyanlar = d.okuyanlar || [];
+            const toplam = d.ogrenciler.length;
+
+            cont.innerHTML += `
+                <div class="track-item">
+                    <div style="display:flex; justify-content:space-between; align-items:start">
+                        <div>
+                            <strong style="font-size:1.1rem">${d.baslik}</strong><br>
+                            <small style="color:var(--text-muted)">${d.sinif} • Teslim: ${d.teslimTarihi}</small>
+                        </div>
+                        <span class="read-badge" onclick='openReadersModal(${JSON.stringify(okuyanlar)}, ${toplam})'>
+                            ${okuyanlar.length}/${toplam} Okundu
+                        </span>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:15px">
+                        <button class="btn-ghost" style="font-size:0.75rem; flex:1" onclick='editHw("${docSnap.id}", ${JSON.stringify(d).replace(/"/g, '&quot;')})'>DÜZENLE</button>
+                        <button class="btn-ghost" style="font-size:0.75rem; flex:1; color:var(--danger)" onclick='deleteHw("${docSnap.id}")'>SİL</button>
+                    </div>
+                </div>`;
+        });
+    });
+
+    // 7. OKUYANLAR MODALINI AÇMA
+    window.openReadersModal = (list, total) => {
+        const cont = document.getElementById('readersList');
+        const stats = document.getElementById('readerStats');
+        
+        stats.innerText = `${total} öğrenciden ${list.length} kişi ödevi görüntüledi.`;
+        cont.innerHTML = list.length > 0 
+            ? list.map(name => `<li><span style="color:var(--success)">✓</span> ${name}</li>`).join('') 
+            : "<li style='border:none; color:var(--text-muted)'>Henüz kimse görüntülemedi.</li>";
+        
+        document.getElementById('readersModal').style.display = 'flex';
+    };
+
+    // 8. DİĞER FONKSİYONLAR (Düzenle, Sil, Kapat, Aktivite)
+    window.editHw = (id, data) => {
+        editingHwId = id;
+        switchTab('odevEkle', document.querySelectorAll('.nav-btn')[0]);
+        document.getElementById('hwClass').value = data.sinif;
+        loadStudentsForHw();
+        document.getElementById('hwTitle').value = data.baslik;
+        document.getElementById('hwGiveDate').value = data.verilmeTarihi;
+        document.getElementById('hwDueDate').value = data.teslimTarihi;
+        document.getElementById('hwDesc').value = data.aciklama;
+        document.getElementById('submitHwBtn').innerText = "GÜNCELLEMEYİ KAYDET";
+        setTimeout(() => {
+            document.querySelectorAll('.hw-st-card').forEach(c => {
+                if(data.ogrenciler.includes(c.dataset.name)) c.classList.add('selected');
+            });
+        }, 500);
+    };
+
+    window.deleteHw = async (id) => { if(confirm("Bu ödevi silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "odevler", id)); };
+
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+    // Aktivite işlemleri (Hızlı geçiş için temel yapı)
+    window.setNewTagType = (t) => {
+        currentNewTagType = t;
+        document.getElementById('typePos').style.border = t === 'positive' ? '2px solid var(--success)' : '1px solid var(--border)';
+        document.getElementById('typeNeg').style.border = t === 'negative' ? '2px solid var(--danger)' : '1px solid var(--border)';
+    };
+
+    window.loadStudentsForAct = () => {
+        const c = document.getElementById('actClass').value;
+        const cont = document.getElementById('actStudentGrid'); cont.innerHTML = "";
+        if(c && tClasses[c]) {
+            tClasses[c].sort((a,b)=>a.number-b.number).forEach(s => {
+                cont.innerHTML += `<div class="st-card" onclick="openActModal('${s.name}')"><span><b>${s.number}</b> ${s.name}</span><div class="read-badge">SEÇ</div></div>`;
+            });
+        }
+    };
+
+    let selectedStudent = "";
+    window.openActModal = (name) => {
+        selectedStudent = name;
+        document.getElementById('modalStudentName').innerText = name;
+        document.getElementById('actModal').style.display = 'flex';
+        renderTags();
+    };
+
+    async function renderTags() {
+        const cont = document.getElementById('tagList'); cont.innerHTML = "";
+        const snap = await getDocs(query(collection(db, "ozelSecenekler"), where("ogretmen", "==", tName)));
+        const defaults = [{t:"Derse Katıldı ✅", s:"positive"}, {t:"Ödev Eksik ❌", s:"negative"}];
+        defaults.concat(snap.docs.map(d => ({t: d.data().text, s: d.data().type, id: d.id}))).forEach(item => {
+            const div = document.createElement('div');
+            div.className = `tag ${item.s}`;
+            div.innerHTML = `${item.t} ${item.id ? `<span onclick="deleteTag('${item.id}', event)" style="margin-left:8px; opacity:0.5">×</span>` : ''}`;
+            div.onclick = () => div.classList.toggle('selected');
+            cont.appendChild(div);
+        });
+    }
+
+    window.addNewTag = async () => {
+        const text = document.getElementById('customTagInput').value.trim();
+        if(!text) return;
+        await addDoc(collection(db, "ozelSecenekler"), { ogretmen: tName, text, type: currentNewTagType });
+        document.getElementById('customTagInput').value = "";
+        renderTags();
+    };
+
+    window.saveActivity = async () => {
+        const tags = Array.from(document.querySelectorAll('.tag.selected')).map(t => t.innerText.replace('×', '').trim());
+        if(!tags.length) return alert("Lütfen en az bir durum seçin.");
+        await addDoc(collection(db, "aktiviteler"), {
+            ogrenciAdi: selectedStudent, sinif: document.getElementById('actClass').value,
+            ogretmenAdi: tName, dersBransi: tBranch, durumlar: tags,
+            not: document.getElementById('actNote').value, tarih: serverTimestamp()
+        });
+        alert("Aktivite kaydedildi."); closeModal('actModal');
+    };
+
+    // Akordeon Aç/Kapat ve Veri Yükle
+window.toggleAccordion = () => {
+    const content = document.getElementById('sentActivities');
+    const icon = document.getElementById('accIcon');
+    const isOpen = content.style.display === 'block';
+    
+    content.style.display = isOpen ? 'none' : 'block';
+    icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    
+    if (!isOpen) loadPastActivities(); // Açıldığında verileri çek
+};
+
+// Geçmiş Aktiviteleri Firebase'den Çek (Real-time)
+function loadPastActivities() {
+    const q = query(collection(db, "aktiviteler"), where("ogretmenAdi", "==", tName));
+    onSnapshot(q, (snap) => {
+        const cont = document.getElementById('pastActivitiesList');
+        cont.innerHTML = snap.empty ? "<p style='text-align:center; font-size:0.8rem; color:var(--text-muted)'>Henüz kayıt yok.</p>" : "";
+        
+        // Tarihe göre sırala (En yeni en üstte)
+        const docs = snap.docs.sort((a,b) => (b.data().tarih?.seconds || 0) - (a.data().tarih?.seconds || 0));
+        
+        docs.forEach(docSnap => {
+            const d = docSnap.data();
+            cont.innerHTML += `
+                <div class="activity-log-item">
+                    <div class="activity-info">
+                        <strong>${d.ogrenciAdi}</strong> <small style="color:var(--text-muted)">(${d.sinif})</small>
+                        <div class="activity-tags">${d.durumlar.join(' • ')}</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="btn-mini-delete" onclick="deleteActivity('${docSnap.id}')">SİL</button>
+                    </div>
+                </div>`;
+        });
+    });
+}
+
+// Aktivite Silme Fonksiyonu
+window.deleteActivity = async (id) => {
+    if(confirm("Bu aktivite kaydını silmek istediğinize emin misiniz?")) {
+        try {
+            await deleteDoc(doc(db, "aktiviteler", id));
+        } catch (e) { alert("Hata: " + e.message); }
+    }
+};
+
+    window.logout = () => { localStorage.clear(); window.location.href = "index.html"; };
+</script>
+
+</body>
+</html>
