@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veli Paneli | Bilgilendirme Sistemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --bg: #0f172a; 
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+            --border: rgba(255, 255, 255, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
+
+        /* HEADER & DROPDOWN */
+        header { 
+            background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); 
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); 
+        }
+        .logo { font-weight: 800; font-size: 1.2rem; color: var(--primary); }
+
+        .user-menu { position: relative; cursor: pointer; }
+        .student-chip { 
+            background: rgba(16, 185, 129, 0.1); color: var(--primary); 
+            padding: 10px 18px; border-radius: 14px; font-weight: 700; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+        .student-chip:hover { background: rgba(16, 185, 129, 0.2); }
+
+        .dropdown {
+            position: absolute; top: 120%; right: 0; background: var(--card-bg);
+            border-radius: 16px; border: 1px solid var(--border); width: 200px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; overflow: hidden;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .dropdown.active { display: block; }
+        .dropdown-item {
+            padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: var(--text-main);
+            display: flex; align-items: center; gap: 10px; transition: 0.2s; text-decoration: none;
+        }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: var(--primary); }
+        .dropdown-item.logout { color: #ef4444; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center;
+            z-index: 1000; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--card-bg); padding: 30px; border-radius: 24px;
+            width: 100%; max-width: 400px; border: 1px solid var(--border);
+        }
+        input {
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155;
+            background: #0f172a; color: white; margin: 15px 0; outline: none;
+        }
+
+        /* DİĞER STİLLER */
+        main { width: 92%; max-width: 1000px; margin: 30px auto; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 15px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: var(--text-muted); font-weight: 700; cursor: pointer; border-radius: 12px; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: var(--card-bg); border-radius: 24px; padding: 22px; border: 1px solid var(--border); position: relative; display: flex; flex-direction: column; }
+        .score-badge { position: absolute; top: 22px; right: 22px; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; }
+        .eval-time { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; display: block; }
+        .eval-note { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px; font-size: 0.9rem; color: var(--text-main); margin-top: 12px; border-left: 4px solid var(--primary); line-height: 1.5; }
+        .btn-file { display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 12px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 0.85rem; margin: 12px 0; border: 1px dashed var(--accent); transition: 0.3s; }
+        .btn-read { width: 100%; padding: 14px; border-radius: 14px; background: var(--primary); color: white; border: none; font-weight: 800; cursor: pointer; margin-top: auto; }
+        .status-done { padding: 14px; border-radius: 14px; background: rgba(16, 185, 129, 0.1); color: var(--primary); font-weight: 800; text-align: center; margin-top: auto; }
+        .hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+    <div class="logo">Veli Paneli</div>
+    <div class="user-menu" onclick="toggleDropdown(event)">
+        <div class="student-chip">
+            <span id="studentName">Yükleniyor...</span>
+            <span>▼</span>
+        </div>
+        <div id="userDropdown" class="dropdown">
+            <div class="dropdown-item" onclick="openPassModal()">🔑 Şifre Değiştir</div>
+            <div class="dropdown-item logout" onclick="logout()">🚪 Güvenli Çıkış</div>
+        </div>
+    </div>
+</header>
+
+<div id="passModal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 style="font-weight: 800;">Şifreni Güncelle</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Yeni şifreniz en az 4 karakter olmalıdır.</p>
+        <input type="password" id="newPassInput" placeholder="Yeni Şifre">
+        <button class="btn-read" onclick="updatePassword()">Kaydet ve Kapat</button>
+        <button onclick="closePassModal()" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer; width:100%; font-weight:600;">Vazgeç</button>
+    </div>
+</div>
+
+<main>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('odevler', this)">📚 Ödevler</button>
+        <button class="tab-btn" onclick="switchTab('degerlendirmeler', this)">⭐ Değerlendirmeler</button>
+        <button class="tab-btn" onclick="switchTab('denemeler', this)">📈 Deneme Sonuçları</button>
+    </div>
+
+    <div id="odevlerSection" class="tab-content">
+        <div id="activeGrid" class="grid"></div>
+    </div>
+
+    <div id="degerlendirmelerSection" class="tab-content hidden">
+        <div id="evalGrid" class="grid"></div>
+    </div>
+
+    <div id="denemelerSection" class="tab-content hidden">
+    <div class="card" style="margin-bottom: 25px; background: linear-gradient(145deg, #1e293b, #0f172a);">
+        <h3 style="margin-bottom: 15px;">📊 Deneme Grafiği</h3>
+        <div style="height: 250px; position: relative;">
+            <canvas id="puanChart"></canvas>
+        </div>
+    </div>
+    
+    <div id="denemeListGrid" class="grid">
+        </div>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, updateDoc, collection, query, where, onSnapshot, arrayUnion, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0",
+  authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com",
+  projectId: "msr-odev-takip-ve-duyuru",
+  storageBucket: "msr-odev-takip-ve-duyuru.firebasestorage.app",
+  messagingSenderId: "282364522003",
+  appId: "1:282364522003:web:b6320b950230ba6c6c19e6",
+  measurementId: "G-SDCT0CDX1L"
+};
+    
+    const app = initializeApp(firebaseConfig); 
+    const db = getFirestore(app);
+    const messaging = getMessaging(app);
+
+    const session = JSON.parse(localStorage.getItem('parentSession'));
+    if(!session) window.location.href = "velilogin.html";
+    document.getElementById('studentName').innerText = session.adSoyad;
+
+    // DROPDOWN KONTROL
+    window.toggleDropdown = (e) => {
+        e.stopPropagation();
+        document.getElementById('userDropdown').classList.toggle('active');
+    }
+    
+
+    window.openPassModal = () => document.getElementById('passModal').classList.add('active');
+    window.closePassModal = () => document.getElementById('passModal').classList.remove('active');
+
+    // ŞİFRE GÜNCELLEME
+    window.updatePassword = async () => {
+        const newPass = document.getElementById('newPassInput').value.trim();
+        if(newPass.length < 4) return alert("Şifre çok kısa!");
+        
+        try {
+            await updateDoc(doc(db, "veliler", session.no), { 
+                sifre: newPass, 
+                sifreDegisti: true 
+            });
+            alert("Şifreniz başarıyla güncellendi.");
+            closePassModal();
+        } catch (e) {
+            alert("Bir hata oluştu.");
+        }
+    }
+
+    
+
+    // Dışarı tıklayınca dropdown kapatma
+    window.onclick = () => document.getElementById('userDropdown').classList.remove('active');
+
+    // SEKME & VERİ ÇEKME (Önceki kod ile aynı)
+    window.switchTab = (target, btn) => {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(target + 'Section').classList.remove('hidden');
+        btn.classList.add('active');
+    };
+
+    onSnapshot(query(collection(db, "odevler"), where("sinif", "==", session.sinif)), (snap) => {
+        const grid = document.getElementById('activeGrid');
+        grid.innerHTML = snap.empty ? "<p style='text-align:center; color:var(--text-muted);'>Aktif ödev bulunmuyor.</p>" : "";
+        snap.forEach(d => {
+            const data = d.data();
+            const isRead = data.okuyanlar?.includes(session.adSoyad);
+            const fileHtml = data.dosyaUrl ? `<a href="${data.dosyaUrl}" target="_blank" class="btn-file">📂 Ödev Dosyasını Görüntüle</a>` : '';
+            grid.innerHTML += `<div class="card"><div class="hw-branch">${data.ders || 'GENEL'}</div><div class="hw-title">${data.baslik}</div><p style="font-size:0.85rem; color:var(--text-muted);">${data.aciklama}</p>${fileHtml}<div style="margin-top:10px; font-size:0.75rem; color:var(--accent); font-weight:700;">📅 Son Teslim: ${data.teslimTarihi}</div>${isRead ? '<div class="status-done">✅ Okundu</div>' : `<button class="btn-read" onclick="markRead('${d.id}')">OKUDUM</button>`}</div>`;
+        });
+    });
+
+    onSnapshot(query(collection(db, "aktiviteler"), where("ogrenciAdi", "==", session.adSoyad)), (snap) => {
+        const grid = document.getElementById('evalGrid');
+        grid.innerHTML = snap.empty ? "<p style='text-align:center; color:var(--text-muted);'>Henüz değerlendirme yok.</p>" : "";
+        const colors = ["", "#ef4444", "#f59e0b", "#6366f1", "#10b981", "#22c55e"];
+        const docs = snap.docs.sort((a,b) => (b.data().tarih?.seconds || 0) - (a.data().tarih?.seconds || 0));
+        docs.forEach(docSnap => {
+            const data = docSnap.data();
+            const color = colors[data.puan] || "#ccc";
+            let formattedDate = data.tarih ? data.tarih.toDate().toLocaleString('tr-TR') : "Tarih yok";
+            grid.innerHTML += `<div class="card" style="border-left: 5px solid ${color}"><div class="score-badge" style="background:${color}20; color:${color}; border:1px solid ${color}40">⭐ ${data.puan} PUAN</div><span class="eval-time">🕒 ${formattedDate}</span><div style="font-weight:800; font-size:1rem; color:var(--text-main);">${data.ogretmenAdi}</div><div class="eval-note">${data.not || "Not yok."}</div></div>`;
+        });
+    });
+
+            // Bildirim İzni ve Token Kaydetme Fonksiyonu
+        async function setupNotifications() {
+            try {
+
+                // 1. Service Worker'ı manuel kaydet (Kritik Adım)
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        console.log('Service Worker kayıt başarılı:', registration);
+                // Tarayıcıdan izin iste
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    // VAPID KEY: Firebase Console > Project Settings > Cloud Messaging > Web Push certificates kısmından alabilirsin.
+                    // Şimdilik boş bırakıyorum ama gerçek bildirim için oradaki anahtarı buraya yapıştırmalısın.
+                    const token = await getToken(messaging, { 
+                        vapidKey: 'BPHsS-B3lS3T2EGMGy7mNIJl_fSupXmvUbQPeeQl_jODO6PNKqbfc0yPDg5-6UYY4a2cfsCtETcROqeJK7jJftI' 
+                    });
+
+                    if (token) {
+                        // Token'ı velinin dökümanına kaydet
+                        await updateDoc(doc(db, "veliler", session.no), {
+                            fcmToken: token
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Bildirim kurulum hatası:", error);
+            }
+        }
+
+        setupNotifications();
+
+    window.markRead = async (id) => await updateDoc(doc(db, "odevler", id), { okuyanlar: arrayUnion(session.adSoyad) });
+    window.logout = () => { localStorage.removeItem('parentSession'); window.location.href = "index.html"; };
+
+    let myChart = null;
+
+// Sekme değiştirme fonksiyonunu güncelle (Grafiği tetiklemek için)
+const originalSwitchTab = window.switchTab;
+window.switchTab = (target, btn) => {
+    originalSwitchTab(target, btn);
+    if(target === 'denemeler') loadDenemeResults();
+};
+
+async function loadDenemeResults() {
+    const grid = document.getElementById('denemeListGrid');
+    const q = query(collection(db, "deneme_sonuclari"), where("adSoyad", "==", session.adSoyad));
+    
+    try {
+        const snap = await getDocs(q);
+        let examData = [];
+        grid.innerHTML = snap.empty ? "<p style='text-align:center; color:var(--text-muted);'>Henüz deneme sonucu girilmemiş.</p>" : "";
+
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
+            examData.push({
+                isim: d.denemeAdi,
+                puan: d.puan,
+                tarih: d.tarih?.toDate() || new Date()
+            });
+
+            grid.innerHTML += `
+                <div class="card" style="border-top: 4px solid var(--accent)">
+                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:15px;">
+                        <div>
+                            <div style="font-weight:800; font-size:1.1rem;">${d.denemeAdi}</div>
+                            <small style="color:var(--text-muted)">${d.tarih?.toDate().toLocaleDateString('tr-TR')}</small>
+                        </div>
+                        <div style="background:var(--primary); color:white; padding:5px 12px; border-radius:10px; font-weight:800;">
+                            ${d.puan} P.
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; text-align:center;">
+                            <small style="display:block; color:var(--text-muted)">Türkçe</small>
+                            <strong>${d.turkce || 0}</strong>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; text-align:center;">
+                            <small style="display:block; color:var(--text-muted)">Matematik</small>
+                            <strong>${d.matematik || 0}</strong>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; text-align:center;">
+                            <small style="display:block; color:var(--text-muted)">Sosyal</small>
+                            <strong>${d.sosyal || 0}</strong>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; text-align:center;">
+                            <small style="display:block; color:var(--text-muted)">Fen</small>
+                            <strong>${d.fen || 0}</strong>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        // Grafiği çizmek için verileri tarihe göre sırala
+        examData.sort((a, b) => a.tarih - b.tarih);
+        updateChart(examData);
+
+    } catch (e) {
+        console.error("Deneme verisi çekilemedi:", e);
+    }
+}
+
+function updateChart(data) {
+    const ctx = document.getElementById('puanChart').getContext('2d');
+    if(myChart) myChart.destroy();
+
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.isim),
+            datasets: [{
+                label: 'Puan Başarısı',
+                data: data.map(d => d.puan),
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointBackgroundColor: '#6366f1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+            }
+        }
+    });
+}
+</script>
+</body>
+</html>

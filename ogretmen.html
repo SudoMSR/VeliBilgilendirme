@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Öğretmen Paneli</title>
+    <link rel="icon" type="image/jpeg" href="logo2.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <div class="brand">
+            <img src="logo2.jpeg" style="width:34px; border-radius:10px"> 
+            Öğretmen Paneli
+        </div>
+        <div style="text-align: right">
+            <div id="activeTeacher" style="font-size: 0.85rem; font-weight: 800; color: var(--primary)">...</div>
+            <button onclick="logout()" style="background:none; border:none; color:var(--danger); font-size:0.7rem; font-weight:800; cursor:pointer;">OTURUMU KAPAT</button>
+        </div>
+    </div>
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="switchTab('odevEkle', this)">Ödev Gönder</button>
+        <button class="nav-btn" onclick="switchTab('aktiviteBildir', this)">Davranış</button>
+        <button class="nav-btn" onclick="switchTab('odevTakip', this)">Gönderilen Ödevler</button>
+        <button class="nav-btn" onclick="switchTab('denemeAnaliz', this)">📊 Deneme Analizi</button>
+    </div>
+</header>
+
+<main>
+    <div id="odevEkle" class="tab-content active">
+        <div class="card">
+            <h3>🚀 Yeni Ödev Gönder</h3>
+            <select id="hwClass" onchange="loadStudentsForHw()">
+                <option value="">Sınıf Seçiniz</option>
+            </select>
+            
+            <div id="hwStudentArea" style="display:none; margin-bottom: 20px;">
+                <div class="st-card" onclick="toggleAllHw()" style="margin-bottom: 15px; border-style: dashed; border-color: var(--primary)">
+                    <span style="font-weight:800; color:var(--primary)">TÜM SINIFI SEÇ</span>
+                    <div class="check-circle" id="selectAllCircle"></div>
+                </div>
+                <div id="hwStudents" class="student-grid"></div>
+            </div>
+
+            <input type="text" id="hwTitle" placeholder="Ödev Başlığı">
+            <div class="date-container">
+                <input type="date" id="hwGiveDate" title="Veriliş Tarihi">
+                <input type="date" id="hwDueDate" title="Teslim Tarihi">
+            </div>
+            <textarea id="hwDesc" rows="3" placeholder="Ödev detayları..."></textarea>
+
+            <div style="margin: 10px 0;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 5px;">📁 Dosya Eki (Opsiyonel)</label>
+                <input type="file" id="hwFile" style="padding: 10px; font-size: 0.8rem;">
+                <div id="uploadProgress" style="display:none; width: 100%; background: var(--border); height: 5px; border-radius: 10px; margin-top: 5px;">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: var(--success); border-radius: 10px; transition: 0.3s;"></div>
+                </div>
+            </div>
+
+            <button class="btn-modern" id="submitHwBtn" onclick="submitHw()">ÖDEVİ YAYINLA</button>
+        </div>
+    </div>
+
+    <div id="aktiviteBildir" class="tab-content">
+        <div class="card">
+            <h3>✨Ders İçi Davranış & Performans Takibi</h3>
+            <select id="actClass" onchange="loadStudentsForAct()">
+                <option value="">Sınıf Seçiniz</option>
+            </select>
+            <div id="actStudentGrid" class="student-grid" style="margin-top:20px"></div>
+        </div>
+
+        <div class="card" style="padding: 18px; background: rgba(30, 41, 59, 0.4); margin-top: 15px;">
+            <div onclick="toggleAccordion()" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                <h3 style="margin: 0; font-size: 1rem; color: var(--text-muted);">📜 Geçmiş Değerlendirmeler</h3>
+                <span id="accIcon" style="transition: 0.3s; color: var(--primary); font-weight: bold;">▼</span>
+            </div>
+            <div id="sentActivities" style="display: none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                <div id="pastActivitiesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="odevTakip" class="tab-content">
+        <h3>📋 Ödev Durumları</h3>
+        <div id="trackingList"></div>
+    </div>
+
+    <div id="denemeAnaliz" class="tab-content">
+<div class="card" style="margin-top:20px; border: 1px solid var(--border);">
+    <h3 style="color: var(--primary); font-size: 1rem;">✍️ Manuel Sonuç Girişi</h3>
+    
+    <div class="input-group">
+    <div class="search-container" style="position: relative;">
+        <input type="text" id="studentSearchInput" placeholder="Öğrenci adı veya numarası yazın..." oninput="filterStudents(this.value)">
+        <div id="studentSearchResults" class="search-results-dropdown" style="display: none; position: absolute; width: 100%; background: var(--card-bg); border: 1px solid var(--primary); border-radius: 12px; z-index: 50; max-height: 200px; overflow-y: auto; margin-top: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            </div>
+        <input type="hidden" id="selectedStudentName">
+    </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+        <div class="input-field">
+            <label style="font-size: 0.7rem; font-weight: 800;">TÜRKÇE NET</label>
+            <input type="number" id="mTurkce" step="0.25" placeholder="0.00">
+        </div>
+        <div class="input-field">
+            <label style="font-size: 0.7rem; font-weight: 800;">MATEMATİK NET</label>
+            <input type="number" id="mMat" step="0.25" placeholder="0.00">
+        </div>
+        <div class="input-field">
+            <label style="font-size: 0.7rem; font-weight: 800;">SOSYAL NET</label>
+            <input type="number" id="mSosyal" step="0.25" placeholder="0.00">
+        </div>
+        <div class="input-field">
+            <label style="font-size: 0.7rem; font-weight: 800;">FEN NET</label>
+            <input type="number" id="mFen" step="0.25" placeholder="0.00">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label style="font-size: 0.7rem; font-weight: 800;">TOPLAM PUAN</label>
+        <input type="number" id="mPuan" step="0.01" placeholder="Genel Puan" style="width:100%;">
+    </div>
+
+    <button onclick="saveManualResult()" class="btn-modern" style="width:100%; background: var(--success); margin-top:15px;">
+        SONUCU KAYDET
+    </button>
+</div>
+
+
+
+    <div class="card" style="border: 2px dashed #6366f1; background: rgba(99, 102, 241, 0.03);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h3 style="color: #6366f1; margin:0;">🤖 AI Deneme Okuyucu</h3>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top:5px;">PDF sonuç listesini yükleyin, AI verileri ayıklasın.</p>
+            </div>
+            <div style="font-size: 2rem;">📊</div>
+        </div>
+
+        <div class="input-group" style="margin-bottom:15px;">
+            <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); display:block; margin-bottom:5px;">DENEME SINAVI ADI</label>
+            <input type="text" id="denemeAdi" placeholder="Örn: Özdebir Mart Denemesi" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:white;">
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid #334155; text-align:center;">
+            <input type="file" id="denemeFile" accept=".pdf" style="color: #94a3b8; font-size:0.8rem; width:100%;">
+            <button onclick="analyzePDF()" id="analyzeBtn" class="btn-modern" style="background: #6366f1; margin-top: 15px; width: 100%;">
+                ✨ PDF'İ TARA VE ANALİZ ET
+            </button>
+        </div>
+
+        <div id="aiResultArea" style="display:none; margin-top: 25px;">
+            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: #10b981;">✅ Analiz Tamamlandı! Lütfen Kontrol Edin:</h4>
+            <div id="resultTableArea" style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 10px; max-height: 350px; overflow-y: auto;">
+                </div>
+            <button onclick="saveAllResults()" id="saveAllBtn" class="btn-modern" style="margin-top: 15px; background: #10b981;">
+                💾 TÜM SONUÇLARI SİSTEME KAYDET
+            </button>
+        </div>
+    </div>
+</div>
+</main>
+
+<div id="readersModal" class="modal">
+    <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <h3 style="margin: 0;">👁️ Görüntüleyenler</h3>
+            <button onclick="closeModal('readersModal')" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <p id="readerStats" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);"></p>
+        <ul id="readersList" class="readers-list"></ul>
+        <button class="btn-modern" onclick="closeModal('readersModal')">TAMAM</button>
+    </div>
+</div>
+
+    <div id="actModal" class="modal">
+        <div class="modal-body">
+            <h3 id="modalStudentName">Öğrenci Adı</h3>
+            
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin: 15px 0 5px 0;">PERFORMANS PUANI (1-5)</label>
+            <div class="score-container">
+                <button class="score-btn" data-score="1" onclick="setScore(1)">1</button>
+                <button class="score-btn" data-score="2" onclick="setScore(2)">2</button>
+                <button class="score-btn" data-score="3" onclick="setScore(3)">3</button>
+                <button class="score-btn" data-score="4" onclick="setScore(4)">4</button>
+                <button class="score-btn" data-score="5" onclick="setScore(5)">5</button>
+            </div>
+
+            <textarea id="actNote" placeholder="Gelişim notu veya veliye mesajınız..." style="height: 100px;"></textarea>
+            
+            <button class="btn-modern" onclick="saveActivity()">DEĞERLENDİRMEYİ GÖNDER</button>
+            <button onclick="closeModal('actModal')" style="width:100%; background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer; font-weight:700">İPTAL</button>
+        </div>
+    </div>
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.5);
+        --bg: #0f172a; 
+        --card-bg: #1e293b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: rgba(255, 255, 255, 0.1);
+        --danger: #ff4757;
+        --success: #2ed573;
+        --warning: #f59e0b; /* Puanlar için yeni renk */
+        --radius: 20px;
+    }
+
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+    }
+
+    body { 
+        background-color: var(--bg); 
+        color: var(--text-main); 
+        min-height: 100vh; 
+        overflow-x: hidden; 
+    }
+
+    /* --- HEADER & NAV --- */
+    header { 
+        background: rgba(30, 41, 59, 0.7); 
+        backdrop-filter: blur(20px);
+        padding: 15px 5%; 
+        border-bottom: 1px solid var(--border);
+        position: sticky; 
+        top: 0; 
+        z-index: 100;
+    }
+
+    .header-top { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 15px; 
+    }
+
+    .brand { 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        font-weight: 800; 
+        font-size: 1.2rem; 
+    }
+    
+    .nav-bar { 
+        display: flex; 
+        background: rgba(15, 23, 42, 0.5); 
+        padding: 6px; 
+        border-radius: 18px; 
+        gap: 6px; 
+        border: 1px solid var(--border); 
+    }
+
+    .nav-btn { 
+        flex: 1; 
+        padding: 12px; 
+        border: none; 
+        background: none; 
+        color: var(--text-muted); 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        cursor: pointer; 
+        border-radius: 14px; 
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+
+    .nav-btn.active { 
+        background: var(--primary); 
+        color: white; 
+        box-shadow: 0 8px 15px var(--primary-glow); 
+    }
+
+    /* --- MAIN CONTENT --- */
+    main { 
+        max-width: 800px; 
+        margin: 25px auto; 
+        padding: 0 20px; 
+    }
+
+    .card { 
+        background: var(--card-bg); 
+        border-radius: 28px; 
+        padding: 30px; 
+        border: 1px solid var(--border); 
+        margin-bottom: 25px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+    }
+
+    h3 { 
+        margin-bottom: 25px; 
+        font-size: 1.25rem; 
+        font-weight: 800; 
+        color: #fff; 
+    }
+
+    /* --- INPUTS --- */
+    input, select, textarea { 
+        width: 100%; 
+        padding: 16px; 
+        margin: 10px 0; 
+        border: 1px solid var(--border); 
+        border-radius: 16px; 
+        background: rgba(15, 23, 42, 0.4); 
+        color: white; 
+        font-size: 0.95rem; 
+        transition: 0.3s;
+    }
+
+    input:focus, textarea:focus { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 4px var(--primary-glow); 
+        outline: none; 
+    }
+
+    .date-container {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .date-container input {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    /* --- PUANLAMA BUTONLARI (YENİ) --- */
+    .score-container {
+        display: flex;
+        gap: 8px;
+        margin: 15px 0;
+        justify-content: space-between;
+    }
+
+    .score-btn {
+        flex: 1;
+        padding: 15px 0;
+        border: 2px solid var(--border);
+        background: rgba(15, 23, 42, 0.5);
+        color: var(--text-muted);
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .score-btn.active {
+        transform: translateY(-5px) scale(1.05);
+        color: white;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+
+    /* Puan Seviyelerine Göre Renkler */
+    .score-btn[data-score="1"].active { background: #ef4444; border-color: #ef4444; }
+    .score-btn[data-score="2"].active { background: #f59e0b; border-color: #f59e0b; }
+    .score-btn[data-score="3"].active { background: #6366f1; border-color: #6366f1; }
+    .score-btn[data-score="4"].active { background: #10b981; border-color: #10b981; }
+    .score-btn[data-score="5"].active { background: #22c55e; border-color: #22c55e; }
+
+    /* --- BUTTONS --- */
+    .btn-modern {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white; 
+        border: none; 
+        padding: 18px; 
+        border-radius: 18px;
+        font-weight: 800; 
+        font-size: 0.95rem; 
+        cursor: pointer;
+        transition: 0.3s ease; 
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 10px;
+        width: 100%; 
+        margin-top: 15px;
+    }
+
+    /* Seçili olan puan butonunun rengini değiştirir */
+.score-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+    .btn-modern:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 12px 25px var(--primary-glow); 
+    }
+
+    .btn-ghost {
+        background: rgba(255, 255, 255, 0.05); 
+        color: var(--text-muted);
+        border: 1px solid var(--border); 
+        padding: 10px 20px; 
+        border-radius: 12px;
+        font-weight: 700; 
+        cursor: pointer; 
+        transition: 0.3s;
+    }
+
+    /* --- STUDENT GRID --- */
+    .student-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+        gap: 12px; 
+        max-height: 380px; 
+        overflow-y: auto; 
+        padding-right: 5px; 
+    }
+
+    .st-card { 
+        background: rgba(15, 23, 42, 0.3); 
+        border: 1px solid var(--border); 
+        padding: 15px; 
+        border-radius: 18px; 
+        cursor: pointer; 
+        transition: 0.3s;
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between;
+    }
+
+    .st-card:hover { 
+        border-color: var(--primary); 
+        background: rgba(99, 102, 241, 0.05); 
+    }
+
+    .st-card.selected { 
+        border-color: var(--primary); 
+        background: var(--primary-glow); 
+    }
+
+    .check-circle { 
+        width: 22px; 
+        height: 22px; 
+        border: 2px solid var(--border); 
+        border-radius: 50%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        transition: 0.3s; 
+    }
+
+    .st-card.selected .check-circle { 
+        background: var(--primary); 
+        border-color: var(--primary); 
+    }
+
+    .st-card.selected .check-circle::after { 
+        content: '✓'; 
+        color: white; 
+        font-size: 12px; 
+        font-weight: 900; 
+    }
+
+    /* --- MODAL --- */
+    .modal { 
+        display: none; 
+        position: fixed; 
+        inset: 0; 
+        background: rgba(0,0,0,0.85); 
+        backdrop-filter: blur(12px); 
+        z-index: 1000; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 20px; 
+    }
+
+    .modal-body { 
+        background: var(--card-bg); 
+        padding: 30px; 
+        border-radius: 32px; 
+        width: 100%; 
+        max-width: 450px; 
+        border: 1px solid var(--border); 
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5); 
+    }
+
+    .readers-list { 
+        list-style: none; 
+        margin: 15px 0; 
+        max-height: 250px; 
+        overflow-y: auto; 
+    }
+
+    .readers-list li { 
+        padding: 12px; 
+        border-bottom: 1px solid var(--border); 
+        display: flex; 
+        align-items: center; 
+        gap: 10px; 
+        font-weight: 500; 
+    }
+
+    /* --- TRACKING ITEMS --- */
+    .track-item { 
+        background: var(--card-bg); 
+        border: 1px solid var(--border); 
+        padding: 25px; 
+        border-radius: 24px; 
+        margin-bottom: 18px; 
+        transition: 0.3s;
+    }
+
+    .read-badge { 
+        background: var(--primary-glow); 
+        color: var(--primary); 
+        padding: 6px 12px; 
+        border-radius: 10px; 
+        font-size: 0.75rem; 
+        font-weight: 800; 
+        cursor: pointer;
+    }
+
+    /* --- ACTIVITY LOG --- */
+    .activity-log-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .score-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 8px;
+        background: var(--primary);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        margin-left: 5px;
+    }
+
+    .activity-info strong { color: var(--primary); font-size: 0.9rem; }
+    .activity-notes { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; font-style: italic; }
+
+    .btn-mini-delete {
+        background: rgba(255, 71, 87, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(255, 71, 87, 0.2);
+        padding: 5px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+    .btn-mini-delete:hover { background: var(--danger); color: white; }
+
+    /* --- UTILS & ANIMATIONS --- */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: slideUp 0.4s ease; }
+
+    @keyframes slideUp { 
+        from { opacity: 0; transform: translateY(20px); } 
+        to { opacity: 1; transform: translateY(0); } 
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; } to { opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+        .date-container { flex-direction: column; gap: 0; }
+        .date-container input { width: 100%; }
+        .header-top { flex-direction: column; gap: 10px; text-align: center; }
+        .score-btn { font-size: 0.9rem; padding: 12px 0; }
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+    #resultTableArea table { width: 100%; border-collapse: collapse; font-size: 0.8rem; color: white; }
+    #resultTableArea th { color: #6366f1; text-align: left; padding: 8px; border-bottom: 1px solid #334155; font-weight: 800; }
+    #resultTableArea td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .ai-loading { opacity: 0.5; cursor: not-allowed; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 0.8; } 100% { opacity: 0.5; } }
+
+    .ai-table input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: white;
+    padding: 5px;
+    text-align: center;
+    border-radius: 4px;
+}
+.ai-table input:focus {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--primary);
+    outline: none;
+}
+.ai-table th { font-size: 0.8rem; color: var(--text-muted); padding: 10px; }
+
+.search-results-dropdown div {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: 0.2s;
+}
+.search-results-dropdown div:hover {
+    background: var(--primary-glow);
+    color: white;
+}
+.search-results-dropdown b {
+    color: var(--primary);
+    margin-right: 8px;
+}
+</style>
+
+
+        <script type="module">
+    // 1. Gerekli Firebase Fonksiyonlarını Import Ediyoruz
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { 
+            getFirestore, doc, collection, addDoc, updateDoc, 
+            getDocs, deleteDoc, query, where, onSnapshot, serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        
+        import { 
+            getStorage, ref, uploadBytesResumable, getDownloadURL 
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+        // 2. OTURUM KONTROLÜ
+        // Giriş yapmış öğretmenin verilerini tarayıcı hafızasından (localStorage) alıyoruz.
+        const sessionData = JSON.parse(localStorage.getItem('teacherSession'));
+        
+        // Eğer oturum yoksa kullanıcıyı login sayfasına geri gönderiyoruz.
+        if (!sessionData) {
+            window.location.href = "ogretmenlogin.html";
+        }
+
+        // Oturum verilerini değişkenlere dağıtıyoruz.
+        const { name: tName, branch: tBranch, classes: tClasses } = sessionData;
+
+        // Arayüzde öğretmenin ismini ve branşını gösteriyoruz.
+        const activeTeacherEl = document.getElementById('activeTeacher');
+        if (activeTeacherEl) {
+            activeTeacherEl.innerText = `${tName} (${tBranch})`;
+        }
+
+        // 3. FIREBASE YAPILANDIRMASI
+        const firebaseConfig = { 
+            apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0", 
+            authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com",
+            storageBucket: "msr-odev-takip-ve-duyuru.firebasestorage.app", // Storage için bu satır şart
+            projectId: "msr-odev-takip-ve-duyuru", 
+            appId: "1:282364522003:web:b6320b950230ba6c6c19e6" 
+        };
+        
+        // Servisleri başlatalım
+        const app = initializeApp(firebaseConfig); 
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // Uygulama genelinde kullanacağımız global değişkenler
+        let editingHwId = null;     // Düzenlenen ödevin ID'si
+        let currentFileUrl = null;  // Mevcut dosyanın linki (düzenleme için)
+        let currentFileName = null; // Mevcut dosyanın adı (düzenleme için)
+        let selectedScore = 0; // Seçilen puanı (1-5) tutar
+        window.currentClassStudents = []; // Sayfa açıldığında boş bir dizi olarak başlasın
+
+
+    // --- 3. SEKME YÖNETİMİ ---
+    // Paneller (Ödev Ekle, Takip, Aktivite) arasındaki geçişi sağlar.
+    window.switchTab = (id, btn) => {
+        // Tüm içerikleri gizle ve butonlardaki 'active' sınıfını kaldır
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        
+        // Seçilen sekme ve butonu aktif yap
+        const targetTab = document.getElementById(id);
+        if (targetTab) {
+            targetTab.classList.add('active');
+            btn.classList.add('active');
+        }
+    };
+
+    // --- 4. SINIF SEÇİM KUTULARINI DOLDUR ---
+    // Öğretmenin yetkili olduğu sınıfları dropdown menülere (select) ekler.
+    ['hwClass', 'actClass'].forEach(id => {
+        const selectEl = document.getElementById(id);
+        if (selectEl) {
+            // Sınıfları alfabetik/sayısal sıraya göre dizerek ekleyelim
+            Object.keys(tClasses).sort().forEach(c => {
+                selectEl.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+        }
+    });
+
+    // --- 5. ÖDEV İŞLEMLERİ (Öğrenci Seçim Alanı) ---
+    // Sınıf seçildiğinde o sınıfa ait öğrencileri kartlar şeklinde listeler.
+window.loadStudentsForHw = () => {
+    const classVal = document.getElementById('hwClass').value;
+    const container = document.getElementById('hwStudents');
+    
+if (classVal && tClasses[classVal]) {
+        // Sadece isim değil, numara ve isim objesi olarak sakla
+        window.currentClassStudents = tClasses[classVal].map(s => ({ 
+            number: s.number, 
+            name: s.name 
+        }));
+    } else {
+        window.currentClassStudents = [];
+    }
+
+    // ... (Mevcut kart oluşturma kodların burada devam etsin)
+    if (classVal && tClasses[classVal]) {
+        tClasses[classVal].sort((a, b) => a.number - b.number).forEach(s => {
+            container.innerHTML += `
+                <div class="st-card hw-st-card" onclick="this.classList.toggle('selected')" data-name="${s.name}">
+                    <span><b>#${s.number}</b> ${s.name}</span>
+                    <div class="check-circle"></div>
+                </div>`;
+        });
+    }
+};
+
+    // --- TÜMÜNÜ SEÇ / KALDIR ---
+    // Listelenen tüm öğrencileri tek tıkla seçmeye veya seçimi bırakmaya yarar.
+    window.toggleAllHw = () => {
+        const cards = document.querySelectorAll('.hw-st-card');
+        if (cards.length === 0) return;
+
+        // Hepsi seçili mi kontrol et
+        const isAllSelected = Array.from(cards).every(c => c.classList.contains('selected'));
+        
+        // Eğer hepsi seçiliyse hepsini kaldır, değilse hepsini seç
+        cards.forEach(c => {
+            if (isAllSelected) {
+                c.classList.remove('selected');
+            } else {
+                c.classList.add('selected');
+            }
+        });
+    };
+
+    // --- 6. ÖDEV KAYDETME VE DOSYA YÜKLEME ---
+    window.submitHw = async () => {
+        // Seçili öğrencileri ve başlığı al
+        const selected = Array.from(document.querySelectorAll('.hw-st-card.selected')).map(c => c.dataset.name);
+        const title = document.getElementById('hwTitle').value;
+        const fileInput = document.getElementById('hwFile'); 
+        const file = fileInput ? fileInput.files[0] : null;
+
+        // Temel doğrulama
+        if(!title || selected.length === 0) return alert("Hata: Başlık ve öğrenci seçilmelidir.");
+
+        // Kullanıcıyı bilgilendir ve butonu kilitle
+        const submitBtn = document.getElementById('submitHwBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "İŞLENİYOR...";
+
+        try {
+            let fileUrl = editingHwId ? currentFileUrl : null;
+            let fileName = editingHwId ? currentFileName : null;
+
+            // 1. ADIM: DOSYA YÜKLEME (Eğer yeni bir dosya seçildiyse)
+            if (file) {
+                const progressContainer = document.getElementById('uploadProgress');
+                if(progressContainer) progressContainer.style.display = 'block';
+                
+                // Firebase Storage referansı (Klasör: odevler / Dosya: zaman_isim)
+                const storageRef = ref(storage, `odevler/${Date.now()}_${file.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                // Yükleme tamamlanana kadar bekle ve URL'yi al
+                fileUrl = await new Promise((resolve, reject) => {
+                    uploadTask.on('state_changed', 
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            const progressBar = document.getElementById('progressBar');
+                            if(progressBar) progressBar.style.width = progress + '%';
+                        }, 
+                        (error) => reject(error), 
+                        async () => {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            resolve(downloadURL);
+                        }
+                    );
+                });
+                fileName = file.name;
+            }
+
+            // 2. ADIM: VERİ PAKETİNİ (PAYLOAD) HAZIRLA
+            const payload = {
+                ogretmenAdi: tName, 
+                ders: tBranch, 
+                sinif: document.getElementById('hwClass').value,
+                baslik: title, 
+                verilmeTarihi: document.getElementById('hwGiveDate').value,
+                teslimTarihi: document.getElementById('hwDueDate').value,
+                aciklama: document.getElementById('hwDesc').value,
+                ogrenciler: selected, 
+                tarih: serverTimestamp()
+            };
+
+            // --- DOSYA MANTIĞI ---
+            if (fileUrl) {
+                // Yeni dosya yüklendiyse bilgileri ekle
+                payload.dosyaUrl = fileUrl;
+                payload.dosyaAdi = fileName;
+            } else if (editingHwId) {
+                // Yeni dosya seçilmedi ama düzenleme yapılıyor, eski dosya bilgilerini koru
+                payload.dosyaUrl = currentFileUrl;
+                payload.dosyaAdi = currentFileName;
+            }
+
+            // 3. ADIM: FIRESTORE KAYIT
+            if(editingHwId) {
+                // Mevcut ödevi güncelle
+                await updateDoc(doc(db, "odevler", editingHwId), payload);
+                editingHwId = null;
+            } else {
+                // Yeni ödev oluştur
+                payload.okuyanlar = []; // Yeni ödevde okuyanlar listesi boş başlar
+                await addDoc(collection(db, "odevler"), payload);
+            }
+
+            alert("İşlem Başarıyla Tamamlandı!"); 
+            location.reload(); // Sayfayı yenileyerek formu ve listeyi temizle
+
+        } catch (e) { 
+            console.error("Yükleme Hatası:", e);
+            alert("Bir hata oluştu: " + e.message); 
+            submitBtn.disabled = false;
+            submitBtn.innerText = "ÖDEVİ YAYINLA";
+        }
+    };
+
+
+
+        // 6. TAKİP LİSTESİ VE OKUNDU TAKİBİ (Real-time)
+        onSnapshot(query(collection(db, "odevler"), where("ogretmenAdi", "==", tName)), (snap) => {
+            const cont = document.getElementById('trackingList'); 
+            cont.innerHTML = "";
+            
+            snap.docs.sort((a,b) => (b.data().tarih?.seconds || 0) - (a.data().tarih?.seconds || 0)).forEach(docSnap => {
+                const d = docSnap.data();
+                const okuyanlar = d.okuyanlar || [];
+                const toplam = d.ogrenciler.length;
+
+                // DOSYA EKİ VAR MI KONTROLÜ
+                const dosyaEkiHTML = d.dosyaUrl 
+                    ? `<div style="margin-top: 10px; padding: 10px; background: rgba(46, 213, 115, 0.1); border-radius: 12px; border: 1px dashed var(--success);">
+                        <a href="${d.dosyaUrl}" target="_blank" style="color: var(--success); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                            📂 <b>Dosya Eki:</b> ${d.dosyaAdi || 'Dosyayı Görüntüle'}
+                        </a>
+                    </div>` 
+                    : "";
+
+                cont.innerHTML += `
+                    <div class="track-item">
+                        <div style="display:flex; justify-content:space-between; align-items:start">
+                            <div>
+                                <strong style="font-size:1.1rem">${d.baslik}</strong><br>
+                                <small style="color:var(--text-muted)">${d.sinif} • Teslim: ${d.teslimTarihi}</small>
+                                ${dosyaEkiHTML} </div>
+                            <span class="read-badge" onclick='openReadersModal(${JSON.stringify(okuyanlar)}, ${toplam})'>
+                                ${okuyanlar.length}/${toplam} Okundu
+                            </span>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:15px">
+                            <button class="btn-ghost" style="font-size:0.75rem; flex:1" onclick='editHw("${docSnap.id}", ${JSON.stringify(d).replace(/"/g, '&quot;')})'>DÜZENLE</button>
+                            <button class="btn-ghost" style="font-size:0.75rem; flex:1; color:var(--danger)" onclick='deleteHw("${docSnap.id}")'>SİL</button>
+                        </div>
+                    </div>`;
+            });
+        });
+
+            // 7. OKUYANLAR MODALINI AÇMA
+            window.openReadersModal = (list, total) => {
+                const cont = document.getElementById('readersList');
+                const stats = document.getElementById('readerStats');
+                
+                stats.innerText = `${total} öğrenciden ${list.length} kişi ödevi görüntüledi.`;
+                cont.innerHTML = list.length > 0 
+                    ? list.map(name => `<li><span style="color:var(--success)">✓</span> ${name}</li>`).join('') 
+                    : "<li style='border:none; color:var(--text-muted)'>Henüz kimse görüntülemedi.</li>";
+                
+                document.getElementById('readersModal').style.display = 'flex';
+            };
+
+            // 8. DİĞER FONKSİYONLAR (Düzenle, Sil, Kapat, Aktivite)
+            window.editHw = (id, data) => {
+                editingHwId = id;
+                currentFileUrl = data.dosyaUrl || null; // Mevcut dosyayı hafızaya al
+                currentFileName = data.dosyaAdi || null;
+                switchTab('odevEkle', document.querySelectorAll('.nav-btn')[0]);
+                document.getElementById('hwClass').value = data.sinif;
+                loadStudentsForHw();
+                document.getElementById('hwTitle').value = data.baslik;
+                document.getElementById('hwGiveDate').value = data.verilmeTarihi;
+                document.getElementById('hwDueDate').value = data.teslimTarihi;
+                document.getElementById('hwDesc').value = data.aciklama;
+                document.getElementById('submitHwBtn').innerText = "GÜNCELLEMEYİ KAYDET";
+                setTimeout(() => {
+                    document.querySelectorAll('.hw-st-card').forEach(c => {
+                        if(data.ogrenciler.includes(c.dataset.name)) c.classList.add('selected');
+                    });
+                }, 500);
+            };
+
+            window.deleteHw = async (id) => { if(confirm("Bu ödevi silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "odevler", id)); };
+
+            window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+            window.loadStudentsForAct = () => {
+                const c = document.getElementById('actClass').value;
+                const cont = document.getElementById('actStudentGrid'); cont.innerHTML = "";
+                if(c && tClasses[c]) {
+                    tClasses[c].sort((a,b)=>a.number-b.number).forEach(s => {
+                        cont.innerHTML += `<div class="st-card" onclick="openActModal('${s.name}')"><span><b>${s.number}</b> ${s.name}</span><div class="read-badge">SEÇ</div></div>`;
+                    });
+                }
+            };
+
+            let selectedStudent = "";
+window.openActModal = (name) => {
+    selectedStudent = name;
+    selectedScore = 0; // Her açılışta puanı sıfırla
+    
+    const studentNameEl = document.getElementById('modalStudentName');
+    const noteEl = document.getElementById('actNote');
+
+    if (studentNameEl) studentNameEl.innerText = name;
+    if (noteEl) noteEl.value = ""; 
+
+    // Mevcut butonlardaki 'active' (seçili) sınıfını temizle
+    document.querySelectorAll('.score-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    const modal = document.getElementById('actModal');
+    if (modal) modal.style.display = 'flex';
+};
+
+window.setScore = (score) => {
+    selectedScore = score;
+    // Tıklanan butonu görsel olarak aktif yap, diğerlerini pasif yap
+    document.querySelectorAll('.score-btn').forEach(btn => {
+        const btnScore = parseInt(btn.getAttribute('data-score') || btn.dataset.score);
+        btn.classList.toggle('active', btnScore === score);
+    });
+};
+
+    window.saveActivity = async () => {
+        const note = document.getElementById('actNote').value.trim();
+        if(selectedScore === 0) return alert("Lütfen 1-5 arası bir puan seçin!");
+
+        await addDoc(collection(db, "aktiviteler"), {
+            ogrenciAdi: selectedStudent,
+            sinif: document.getElementById('actClass').value,
+            ogretmenAdi: tName,
+            dersBransi: tBranch,
+            puan: selectedScore, // Artık puan gidiyor
+            not: note,
+            tarih: serverTimestamp()
+        });
+        alert("Başarıyla kaydedildi.");
+        closeModal('actModal');
+    };
+
+
+
+
+
+
+            // Akordeon Aç/Kapat ve Veri Yükle
+        window.toggleAccordion = () => {
+            const content = document.getElementById('sentActivities');
+            const icon = document.getElementById('accIcon');
+            const isOpen = content.style.display === 'block';
+            
+            content.style.display = isOpen ? 'none' : 'block';
+            icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            
+            if (!isOpen) loadPastActivities(); // Açıldığında verileri çek
+        };
+
+        // Geçmiş Aktiviteleri Firebase'den Çek (Real-time)
+function loadPastActivities() {
+    const q = query(collection(db, "aktiviteler"), where("ogretmenAdi", "==", tName));
+    
+    onSnapshot(q, (snap) => {
+        const cont = document.getElementById('pastActivitiesList');
+        if (!cont) return;
+
+        cont.innerHTML = snap.empty ? 
+            "<div style='text-align:center; padding:30px; color:#94a3b8;'>Niye boş buralar? Henüz bir değerlendirme yok.</div>" : "";
+        
+        const colors = ["", "#ef4444", "#f59e0b", "#6366f1", "#10b981", "#22c55e"];
+
+        const docs = snap.docs.sort((a,b) => (b.data().tarih?.seconds || 0) - (a.data().tarih?.seconds || 0));
+        
+        docs.forEach(docSnap => {
+            const d = docSnap.data();
+            const scoreColor = colors[d.puan] || "#ccc";
+            
+            // Tarih formatı: 15 Haz, 14:30
+            const dateObj = d.tarih ? d.tarih.toDate() : new Date();
+            const dateStr = dateObj.toLocaleDateString('tr-TR', { day:'numeric', month:'short' }) + ", " + 
+                            dateObj.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+
+            cont.innerHTML += `
+                <div class="activity-log-item" style="--score-color: ${scoreColor}">
+                    <div class="activity-info">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong>${d.ogrenciAdi}</strong>
+                            <span style="font-size:0.7rem; color:#94a3b8; font-weight:600;">${dateStr}</span>
+                        </div>
+                        <div style="margin: 5px 0;">
+                            <span style="background:${scoreColor}20; color:${scoreColor}; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:800; border:1px solid ${scoreColor}40">
+                                ⭐ ${d.puan} Puan
+                            </span>
+                            <small style="margin-left:8px; color:#64748b;">${d.sinif}</small>
+                        </div>
+                        ${d.not ? `<div class="activity-notes">"${d.not}"</div>` : ''}
+                    </div>
+                    <div style="text-align:right; margin-top:10px;">
+                        <button onclick="deleteActivity('${docSnap.id}')" style="background:none; border:none; color:#f87171; font-size:0.7rem; font-weight:700; cursor:pointer;">SİL</button>
+                    </div>
+                </div>`;
+        });
+    });
+}
+
+
+    // Aktivite Silme Fonksiyonu
+        window.deleteActivity = async (id) => {
+            if(confirm("Bu aktivite kaydını silmek istediğinize emin misiniz?")) {
+                try {
+                    await deleteDoc(doc(db, "aktiviteler", id));
+                } catch (e) { alert("Hata: " + e.message); }
+            }
+        };
+
+            window.logout = () => { localStorage.clear(); window.location.href = "index.html"; };
+
+
+
+
+// PDF.js worker ayarı (Dosyanın en üstünde kalsın)
+const pdfjsLib = window['pdfjs-dist/build/pdf'];
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+// Global değişken (AI'dan gelen veriyi burada tutacağız)
+window.lastAiData = [];
+
+// 1. PDF ANALİZ BAŞLATICI
+window.analyzePDF = async function() {
+    const fileInput = document.getElementById('denemeFile');
+    const denemeInput = document.getElementById('denemeAdi');
+    
+    if (!fileInput.files[0] || !denemeInput.value.trim()) {
+        return alert("Lütfen sınav adını girin ve bir PDF dosyası seçin!");
+    }
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    btn.classList.add('ai-loading');
+    btn.innerText = "🔍 PDF Metni Okunuyor...";
+
+    try {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = async function() {
+            try {
+                const typedarray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = "";
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    fullText += textContent.items.map(s => s.str).join(" ");
+                }
+                
+                console.log("PDF okundu, karakter sayısı:", fullText.length);
+                window.processWithAI(fullText);
+            } catch (pdfError) {
+                alert("PDF işlenirken hata oluştu: " + pdfError.message);
+                window.resetAnalyzeBtn();
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } catch (e) {
+        alert("Dosya okuma hatası: " + e.message);
+        window.resetAnalyzeBtn();
+    }
+}
+
+window.processWithAI = async function(text) {
+    const btn = document.getElementById('analyzeBtn');
+    btn.innerText = "🤖 AI İle Sonuçlar Okunuyor...";
+    
+    const API_KEY = "AIzaSyBn96gYWlVwgftMks40993rrsp8JSVu-G8"; 
+    
+    // Senin listende en üstte çalışan model ismini tam olarak buraya yazdım
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+// AI Analiz kısmındaki prompt'u güncelle
+const prompt = `Aşağıda listelenen öğrencilerin resmi [Numara - İsim] listesini kullan: 
+${window.currentClassStudents.map(s => `#${s.number} - ${s.name}`).join(", ")}.
+
+Görev: PDF metninden bu öğrencilerin (Türkçe, Matematik, Sosyal, Fen) netlerini ve toplam puanlarını bul.
+Kurallar:
+1. SADECE yukarıdaki listede olan öğrencileri getir.
+2. Önce OKUL NUMARASINA göre eşleştir.
+3. Çıktıyı SADECE şu JSON formatında ver: [{"no": 101, "adSoyad": "Ali Yılmaz", "turkce": 15.5, "mat": 10, "sosyal": 5, "fen": 8.25, "puan": 312.50}]
+4. Metin: ${text.substring(0, 35000)}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
+        const rawResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!rawResponse) throw new Error("AI veri ayıklayamadı. PDF içeriğini kontrol edin.");
+
+        // JSON temizleme (Markdown işaretlerini kaldırır)
+        const cleanJson = rawResponse.replace(/```json|```|json/gi, "").trim();
+        window.lastAiData = JSON.parse(cleanJson);
+        
+        window.displayAiResults(window.lastAiData);
+        console.log("Analiz Başarılı (Gemini 2.5 Flash)");
+
+    } catch (e) {
+        console.error("Detaylı Hata:", e);
+        alert("Analiz Hatası: " + e.message);
+    } finally {
+        window.resetAnalyzeBtn();
+    }
+}
+
+// 3. SONUÇLARI DÜZENLENEBİLİR TABLOYA DÖKME
+window.displayAiResults = function(data) {
+    const resultArea = document.getElementById('aiResultArea');
+    const tableArea = document.getElementById('resultTableArea');
+    
+    resultArea.style.display = 'block';
+    
+    if (!data || data.length === 0) {
+        tableArea.innerHTML = "<p style='color:var(--danger);'>Veri bulunamadı veya AI metni anlamlandıramadı.</p>";
+        return;
+    }
+
+    let html = `
+        <table class="ai-table" style="width:100%; border-collapse: collapse; margin-top:15px; background: rgba(0,0,0,0.2); border-radius:12px; overflow:hidden;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 0.8rem;">
+                    <th style="padding:12px;">NO</th>
+                    <th style="padding:12px; text-align:left;">AD SOYAD</th>
+                    <th style="padding:12px;">TR</th>
+                    <th style="padding:12px;">MAT</th>
+                    <th style="padding:12px;">SOS</th>
+                    <th style="padding:12px;">FEN</th>
+                    <th style="padding:12px;">PUAN</th>
+                </tr>
+            </thead>
+            <tbody>`;
+    
+    data.forEach((item, index) => {
+        html += `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td><input type="number" value="${item.no || ''}" onchange="updateAiData(${index}, 'no', this.value)" style="width:50px; text-align:center; background:transparent; border:none; color:white;"></td>
+                <td><input type="text" value="${item.adSoyad || ''}" onchange="updateAiData(${index}, 'adSoyad', this.value)" style="width:100%; text-align:left; background:transparent; border:none; color:white;"></td>
+                <td><input type="number" value="${item.turkce || 0}" onchange="updateAiData(${index}, 'turkce', this.value)" style="width:40px; text-align:center; background:transparent; border:none; color:white;"></td>
+                <td><input type="number" value="${item.mat || 0}" onchange="updateAiData(${index}, 'mat', this.value)" style="width:40px; text-align:center; background:transparent; border:none; color:white;"></td>
+                <td><input type="number" value="${item.sosyal || 0}" onchange="updateAiData(${index}, 'sosyal', this.value)" style="width:40px; text-align:center; background:transparent; border:none; color:white;"></td>
+                <td><input type="number" value="${item.fen || 0}" onchange="updateAiData(${index}, 'fen', this.value)" style="width:40px; text-align:center; background:transparent; border:none; color:white;"></td>
+                <td><input type="number" step="0.01" value="${item.puan || 0}" onchange="updateAiData(${index}, 'puan', this.value)" style="width:70px; text-align:center; background:transparent; border:none; color:var(--primary); font-weight:bold;"></td>
+            </tr>`;
+    });
+    
+    html += `</tbody></table>`;
+    tableArea.innerHTML = html;
+}
+// Tablodaki değişiklikleri ana veriye işleyen fonksiyon
+window.updateAiData = function(index, field, value) {
+    if (field === 'adSoyad') {
+        window.lastAiData[index][field] = value;
+    } else {
+        window.lastAiData[index][field] = parseFloat(value) || 0;
+    }
+    console.log(`Güncellendi: Row ${index}, Field ${field}, New Value: ${value}`);
+};
+
+// 4. VERİTABANINA KAYDETME
+window.saveAllResults = async function() {
+    const denemeAdi = document.getElementById('denemeAdi').value.trim();
+    const saveBtn = document.getElementById('saveAllBtn');
+    
+    if (window.lastAiData.length === 0) return alert("Kaydedilecek veri bulunamadı.");
+    if (!confirm(`${window.lastAiData.length} öğrencinin sonucunu kaydetmek istiyor musunuz?`)) return;
+
+    saveBtn.innerText = "💾 Kaydediliyor...";
+    saveBtn.disabled = true;
+
+    try {
+        // Firebase importlarınızın (db, collection, addDoc) window nesnesine bağlı olduğunu varsayıyoruz.
+        // Eğer modül içindeyse, import ettiğiniz isimleri kullanın.
+        const teacherName = document.getElementById('activeTeacher')?.innerText || "Bilinmeyen Öğretmen";
+
+for (const res of window.lastAiData) {
+    await addDoc(collection(db, "deneme_sonuclari"), {
+        denemeAdi: denemeAdi,
+        ogrenciNo: res.no, // AI'dan gelen numara
+        adSoyad: res.adSoyad,
+        turkce: res.turkce,
+        matematik: res.mat,
+        sosyal: res.sosyal,
+        fen: res.fen,
+                puan: res.puan,
+        ekleyenOgretmen: teacherName,
+        tarih: new Date()
+    });
+}
+        alert("Başarılı! Tüm sonuçlar sisteme işlendi.");
+        location.reload();
+    } catch (e) {
+        console.error("Firestore Kayıt Hatası:", e);
+        alert("Kayıt sırasında hata oluştu: " + e.message);
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 TÜM SONUÇLARI SİSTEME KAYDET";
+    }
+}
+
+// 5. BUTON SIFIRLAMA
+window.resetAnalyzeBtn = function() {
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = false;
+    btn.classList.remove('ai-loading');
+    btn.innerText = "✨ PDF'İ TARA VE ANALİZ ET";
+}
+
+
+// Arama için global öğrenci listesi (o anki sınıfın öğrencileri)
+let searchableStudents = [];
+
+// Sınıf seçildiğinde listeyi hafızaya al
+window.loadStudentsForManual = (sinifAdi) => {
+    if (sinifAdi && tClasses[sinifAdi]) {
+        searchableStudents = tClasses[sinifAdi];
+        document.getElementById('studentSearchInput').value = "";
+        document.getElementById('selectedStudentName').value = "";
+    } else {
+        searchableStudents = [];
+    }
+};
+
+window.filterStudents = (val) => {
+    const resultsDiv = document.getElementById('studentSearchResults');
+    const input = val.toLowerCase().trim();
+
+    // 1. Liste boş mu kontrol et (Hata ayıklama için konsola yazdırır)
+    if (searchableStudents.length === 0) {
+        console.warn("Arama yapılacak öğrenci listesi henüz yüklenmemiş!");
+        resultsDiv.innerHTML = '<div style="color:var(--warning)">Lütfen önce yukarıdan bir sınıf seçin!</div>';
+        resultsDiv.style.display = 'block';
+        return;
+    }
+
+    if (input.length < 1) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+
+    // 2. Filtreleme (s.name ve s.number alanlarının varlığını kontrol ederek)
+    const filtered = searchableStudents.filter(s => {
+        const name = s.name ? s.name.toLowerCase() : "";
+        const number = s.number ? s.number.toString() : "";
+        return name.includes(input) || number.includes(input);
+    });
+
+    // 3. Görselleştirme
+    if (filtered.length > 0) {
+        resultsDiv.innerHTML = filtered.map(s => `
+            <div onclick="selectStudentForManual('${s.name}', '${s.number}')" style="padding:10px; border-bottom:1px solid #334155;">
+                <b style="color:var(--primary)">#${s.number}</b> ${s.name}
+            </div>
+        `).join('');
+        resultsDiv.style.display = 'block';
+    } else {
+        resultsDiv.innerHTML = '<div style="padding:10px; color:var(--text-muted)">Eşleşme bulunamadı...</div>';
+        resultsDiv.style.display = 'block';
+    }
+};
+
+// Listeden birine tıklandığında seçimi tamamla
+window.selectStudentForManual = (name, number) => {
+    document.getElementById('studentSearchInput').value = `#${number} - ${name}`;
+    document.getElementById('selectedStudentName').value = name; // Kayıtta bu kullanılacak
+    document.getElementById('studentSearchResults').style.display = 'none';
+};
+
+window.saveManualResult = async function() {
+    // 1. Verileri Yeni Yapıya Göre Alıyoruz
+    const adSoyad = document.getElementById('selectedStudentName').value; // Gizli inputtan ismi al
+    const displayVal = document.getElementById('studentSearchInput').value; // Arama kutusundaki metin
+    const denemeAdi = document.getElementById('denemeAdi').value.trim();
+    const t = document.getElementById('mTurkce').value;
+    const m = document.getElementById('mMat').value;
+    const s = document.getElementById('mSosyal').value;
+    const f = document.getElementById('mFen').value;
+    const p = document.getElementById('mPuan').value;
+
+    // 2. Doğrulama (Öğrenci gerçekten listeden seçildi mi?)
+    if (!adSoyad || !displayVal) {
+        return alert("Lütfen listeden bir öğrenci seçin!");
+    }
+    if (!denemeAdi || !t || !m || !s || !f || !p) {
+        return alert("Lütfen tüm ders netlerini ve puanı eksiksiz girin!");
+    }
+
+    try {
+        // 3. Firestore Kaydı
+        await addDoc(collection(db, "deneme_sonuclari"), {
+            denemeAdi: denemeAdi,
+            adSoyad: adSoyad, // Temiz isim (Örn: "Ali Yılmaz")
+            turkce: parseFloat(t),
+            matematik: parseFloat(m),
+            sosyal: parseFloat(s),
+            fen: parseFloat(f),
+            puan: parseFloat(p),
+            tarih: serverTimestamp(), // Firebase sunucu saati kullanımı daha iyidir
+            ekleyen: document.getElementById('activeTeacher').innerText
+        });
+        
+        alert("Başarıyla kaydedildi!");
+
+        // 4. Formu ve Arama Kutularını Temizle
+        const idsToClear = ["mTurkce", "mMat", "mSosyal", "mFen", "mPuan", "studentSearchInput", "selectedStudentName"];
+        idsToClear.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = "";
+        });
+
+    } catch (e) {
+        console.error("Kayıt Hatası:", e);
+        alert("Hata: " + e.message);
+    }
+}
+// Arama listesi dışında bir yere tıklandığında sonuç listesini kapat
+document.addEventListener('click', function(e) {
+    const resultsDiv = document.getElementById('studentSearchResults');
+    const searchInput = document.getElementById('studentSearchInput');
+    
+    if (e.target !== resultsDiv && e.target !== searchInput) {
+        if(resultsDiv) resultsDiv.style.display = 'none';
+    }
+});
+console.log(searchableStudents);
+        </script>
+
+    </body>
+    </html>
