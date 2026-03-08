@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Girişi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a; /* Modern Koyu Tema */
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body { 
+            background: var(--bg); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden;
+        }
+
+        /* Arka Plan Dekorasyonu */
+        .bg-glow {
+            position: absolute; width: 300px; height: 300px;
+            background: var(--primary); filter: blur(120px);
+            opacity: 0.2; z-index: -1; top: 20%; left: 30%;
+        }
+
+        .login-container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        h1 { color: var(--text-main); font-weight: 800; font-size: 2rem; margin-bottom: 8px; letter-spacing: -1px; }
+        p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px; }
+
+        .input-group { text-align: left; margin-bottom: 20px; }
+        label { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.05em; }
+        
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    
+    <div class="login-container">
+        <h1>Yönetim Girişi</h1>
+        <p>Yönetim paneline hoş geldiniz.</p>
+
+        <div class="input-group">
+            <label>Erişim Şifresi</label>
+            <input type="password" id="adminPass" placeholder="••••••••" onkeypress="if(event.key==='Enter') login()">
+        </div>
+
+        <button onclick="login()">Sisteme Giriş Yap</button>
+        
+
+    </div>
+
+    <script>
+        // --- OTURUM KONTROLÜ ---
+        // Eğer zaten giriş yapılmışsa doğrudan panele yönlendir
+        if (localStorage.getItem('msr_admin_auth') === 'true') {
+            window.location.href = 'admin_ogretmen1.html';
+        }
+
+        function login() {
+            const pass = document.getElementById('adminPass').value;
+            const targetPass = "12345"; // Şifren
+
+            if (pass === targetPass) {
+                localStorage.setItem('msr_admin_auth', 'true');
+                // Giriş başarılı olunca yönlendir
+                window.location.href = 'admin_ogretmen1.html';
+            } else {
+                alert("Geçersiz şifre! Lütfen tekrar deneyin.");
+                document.getElementById('adminPass').value = "";
+            }
+        }
+    </script>
+</body>
+</html>

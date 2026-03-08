@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğretmen Girişi</title>
+    <link rel="icon" type="image/jpeg" href="logo2.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a; 
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        .login-card { 
+            background: var(--card-bg); padding: 40px; border-radius: 32px; 
+            width: 100%; max-width: 400px; text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .login-logo { width: 80px; height: 80px; border-radius: 20px; margin-bottom: 20px; object-fit: cover; }
+        h2 { margin-bottom: 10px; font-weight: 800; letter-spacing: -1px; }
+        p { color: var(--text-muted); margin-bottom: 30px; font-size: 0.9rem; }
+        input { 
+            width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; 
+            border: 1px solid #334155; background: #0f172a; color: white; outline: none;
+        }
+        .btn-login { 
+            width: 100%; padding: 14px; border-radius: 12px; background: var(--primary); 
+            color: white; font-weight: 800; border: none; cursor: pointer; transition: 0.3s;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2); }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+
+    <h2>Öğretmen Girişi</h2>
+    <p>Devam etmek için kimliğinizi doğrulayın.</p>
+    <input type="text" id="lName" placeholder="Ad Soyad">
+    <input type="password" id="lPass" placeholder="Şifre">
+    <button class="btn-login" onclick="login()">Giriş Yap</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyB-gYQ-t92rNARvCLlmEMHKVj5ArZ29rJ0", 
+        authDomain: "msr-odev-takip-ve-duyuru.firebaseapp.com", 
+        projectId: "msr-odev-takip-ve-duyuru", 
+        storageBucket: "msr-odev-takip-ve-duyuru.firebasestorage.app", 
+        messagingSenderId: "282364522003", 
+        appId: "1:282364522003:web:b6320b950230ba6c6c19e6" 
+    };
+    
+    const app = initializeApp(firebaseConfig); 
+    const db = getFirestore(app);
+
+    window.login = async function() {
+        const n = document.getElementById('lName').value.trim();
+        const p = document.getElementById('lPass').value.trim();
+        if(!n || !p) return alert("Lütfen tüm alanları doldurun.");
+        
+        const btn = document.querySelector('.btn-login');
+        btn.innerText = "Kontrol ediliyor...";
+        btn.disabled = true;
+
+        try {
+            const snap = await getDoc(doc(db, "ogretmenler", n));
+            if(snap.exists() && snap.data().sifre === p) {
+                // OTURUM VERİLERİNİ KAYDET
+                const teacherData = {
+                    name: n,
+                    branch: snap.data().brans || "Genel",
+                    classes: snap.data().siniflar,
+                    loginTime: Date.now()
+                };
+                localStorage.setItem('teacherSession', JSON.stringify(teacherData));
+                window.location.href = "ogretmen.html";
+            } else {
+                alert("Hatalı kullanıcı adı veya şifre!");
+                btn.innerText = "Giriş Yap";
+                btn.disabled = false;
+            }
+        } catch (e) {
+            alert("Bir hata oluştu.");
+            btn.innerText = "Giriş Yap";
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
