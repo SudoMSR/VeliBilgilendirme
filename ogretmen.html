@@ -618,6 +618,28 @@
     }
     .eval-panel.open { display: block; }
 
+    .eval-search-input {
+        width: 100%;
+        padding: 12px 16px;
+        margin: 0 0 14px 0;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.6);
+        color: white;
+        font-size: 0.85rem;
+    }
+    .eval-search-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+        outline: none;
+    }
+    .eval-no-match {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        padding: 16px;
+    }
+
     .eval-student-row {
         background: rgba(15, 23, 42, 0.4);
         border: 1px solid var(--border);
@@ -1149,7 +1171,7 @@ window.submitHw = async () => {
                     }).join('');
 
                     return `
-                        <div class="eval-student-row" id="evalRow-${docSnap.id}-${encodeURIComponent(sName)}">
+                        <div class="eval-student-row" id="evalRow-${docSnap.id}-${encodeURIComponent(sName)}" data-search-name="${sName.toLowerCase()}">
                             <div class="eval-student-head">
                                 <strong style="font-size:0.85rem;">${sName}</strong>
                                 <span class="eval-status-chip ${isDone ? 'done' : 'pending'}">${isDone ? '✅ Tamamladı' : '⏳ Beklemede'}</span>
@@ -1178,6 +1200,8 @@ window.submitHw = async () => {
                             <button class="eval-toggle-btn" style="flex:1" onclick="toggleEvalPanel('${docSnap.id}')">📝 ÖĞRENCİLERİ DEĞERLENDİR</button>
                         </div>
                         <div class="eval-panel" id="evalPanel-${docSnap.id}">
+                            <input type="text" class="eval-search-input" placeholder="🔍 Öğrenci ara..." oninput="filterEvalStudents('${docSnap.id}', this.value)">
+                            <div class="eval-no-match" id="evalNoMatch-${docSnap.id}" style="display:none;">Eşleşen öğrenci bulunamadı.</div>
                             ${evalRowsHTML}
                         </div>
                     </div>`;
@@ -1200,7 +1224,33 @@ window.submitHw = async () => {
             // 7b. ÖĞRENCİ DEĞERLENDİRME PANELİ AÇ/KAPA (YENİ)
             window.toggleEvalPanel = (hwId) => {
                 const panel = document.getElementById(`evalPanel-${hwId}`);
-                if (panel) panel.classList.toggle('open');
+                if (!panel) return;
+                panel.classList.toggle('open');
+                // Panel her açılışta arama kutusunu ve filtreyi sıfırla
+                if (panel.classList.contains('open')) {
+                    const searchInput = panel.querySelector('.eval-search-input');
+                    if (searchInput) searchInput.value = "";
+                    window.filterEvalStudents(hwId, "");
+                }
+            };
+
+            // 7e. ÖĞRENCİ DEĞERLENDİRME PANELİNDE ARAMA (YENİ)
+            window.filterEvalStudents = (hwId, term) => {
+                const panel = document.getElementById(`evalPanel-${hwId}`);
+                if (!panel) return;
+                const q = term.toLowerCase().trim();
+                const rows = panel.querySelectorAll('.eval-student-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const name = row.dataset.searchName || "";
+                    const matches = name.includes(q);
+                    row.style.display = matches ? "" : "none";
+                    if (matches) visibleCount++;
+                });
+
+                const noMatchEl = document.getElementById(`evalNoMatch-${hwId}`);
+                if (noMatchEl) noMatchEl.style.display = (visibleCount === 0 && rows.length > 0) ? "block" : "none";
             };
 
             // 7c. PUAN SEÇİMİ (YENİ) - sadece görsel state, kayıt "DEĞERLENDİRMEYİ KAYDET" ile yapılır
