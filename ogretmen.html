@@ -596,6 +596,111 @@
     }
     .btn-mini-delete:hover { background: var(--danger); color: white; }
 
+    /* --- HW STUDENT EVAL (YENİ) --- */
+    .eval-toggle-btn {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .eval-toggle-btn:hover { background: var(--primary); color: white; }
+
+    .eval-panel {
+        display: none;
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px dashed var(--border);
+    }
+    .eval-panel.open { display: block; }
+
+    .eval-student-row {
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+    }
+
+    .eval-student-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .eval-status-chip {
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
+    .eval-status-chip.done { background: rgba(46, 213, 115, 0.15); color: var(--success); }
+    .eval-status-chip.pending { background: rgba(255, 255, 255, 0.08); color: var(--text-muted); }
+
+    .eval-score-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .eval-score-btn {
+        flex: 1;
+        padding: 8px 0;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.5);
+        color: var(--text-muted);
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .eval-score-btn.active[data-score="1"] { background: #ef4444; border-color: #ef4444; color: white; }
+    .eval-score-btn.active[data-score="2"] { background: #f59e0b; border-color: #f59e0b; color: white; }
+    .eval-score-btn.active[data-score="3"] { background: #6366f1; border-color: #6366f1; color: white; }
+    .eval-score-btn.active[data-score="4"] { background: #10b981; border-color: #10b981; color: white; }
+    .eval-score-btn.active[data-score="5"] { background: #22c55e; border-color: #22c55e; color: white; }
+
+    .eval-note-input {
+        width: 100%;
+        padding: 10px 12px;
+        margin: 0 0 10px 0;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.5);
+        color: white;
+        font-size: 0.85rem;
+        resize: vertical;
+        min-height: 50px;
+    }
+
+    .eval-save-btn {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        background: var(--primary);
+        color: white;
+        font-weight: 800;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .eval-save-btn:hover { background: #4f46e5; }
+
+    .eval-saved-note {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 6px;
+        font-style: italic;
+    }
+
     /* --- UTILS & ANIMATIONS --- */
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: slideUp 0.4s ease; }
@@ -1021,6 +1126,7 @@ window.submitHw = async () => {
                 const d = docSnap.data();
                 const okuyanlar = d.okuyanlar || [];
                 const toplam = d.ogrenciler.length;
+                const degerlendirmeler = d.degerlendirmeler || {};
 
                 // DOSYA EKİ VAR MI KONTROLÜ
                 const dosyaEkiHTML = d.dosyaUrl 
@@ -1031,6 +1137,30 @@ window.submitHw = async () => {
                     </div>` 
                     : "";
 
+                // ÖĞRENCİ DEĞERLENDİRME PANELİ (YENİ)
+                const evalRowsHTML = (d.ogrenciler || []).map(sName => {
+                    const isDone = okuyanlar.includes(sName);
+                    const existing = degerlendirmeler[sName] || null;
+                    const safeName = sName.replace(/'/g, "\\'");
+
+                    const scoreBtnsHTML = [1,2,3,4,5].map(n => {
+                        const active = existing && existing.puan === n ? 'active' : '';
+                        return `<button type="button" class="eval-score-btn ${active}" data-score="${n}" onclick="setHwEvalScore(this, '${docSnap.id}', '${safeName}', ${n})">${n}</button>`;
+                    }).join('');
+
+                    return `
+                        <div class="eval-student-row" id="evalRow-${docSnap.id}-${encodeURIComponent(sName)}">
+                            <div class="eval-student-head">
+                                <strong style="font-size:0.85rem;">${sName}</strong>
+                                <span class="eval-status-chip ${isDone ? 'done' : 'pending'}">${isDone ? '✅ Tamamladı' : '⏳ Beklemede'}</span>
+                            </div>
+                            <div class="eval-score-row">${scoreBtnsHTML}</div>
+                            <textarea class="eval-note-input" placeholder="Not yazın (opsiyonel)...">${existing && existing.not ? existing.not : ''}</textarea>
+                            <button type="button" class="eval-save-btn" onclick="saveHwEvaluation('${docSnap.id}', '${safeName}')">DEĞERLENDİRMEYİ KAYDET</button>
+                            ${existing ? `<div class="eval-saved-note">Son kayıt: ⭐ ${existing.puan} puan${existing.not ? ' • "' + existing.not + '"' : ''}</div>` : ''}
+                        </div>`;
+                }).join('');
+
                 cont.innerHTML += `
                     <div class="track-item">
                         <div style="display:flex; justify-content:space-between; align-items:start">
@@ -1039,12 +1169,16 @@ window.submitHw = async () => {
                                 <small style="color:var(--text-muted)">${d.sinif} • Teslim: ${d.teslimTarihi}</small>
                                 ${dosyaEkiHTML} </div>
                             <span class="read-badge" onclick='openReadersModal(${JSON.stringify(okuyanlar)}, ${toplam})'>
-                                ${okuyanlar.length}/${toplam} Okundu
+                                ${okuyanlar.length}/${toplam} Tamamladı
                             </span>
                         </div>
                         <div style="display:flex; gap:10px; margin-top:15px">
                             <button class="btn-ghost" style="font-size:0.75rem; flex:1" onclick='editHw("${docSnap.id}", ${JSON.stringify(d).replace(/"/g, '&quot;')})'>DÜZENLE</button>
                             <button class="btn-ghost" style="font-size:0.75rem; flex:1; color:var(--danger)" onclick='deleteHw("${docSnap.id}")'>SİL</button>
+                            <button class="eval-toggle-btn" style="flex:1" onclick="toggleEvalPanel('${docSnap.id}')">📝 ÖĞRENCİLERİ DEĞERLENDİR</button>
+                        </div>
+                        <div class="eval-panel" id="evalPanel-${docSnap.id}">
+                            ${evalRowsHTML}
                         </div>
                     </div>`;
             });
@@ -1055,12 +1189,55 @@ window.submitHw = async () => {
                 const cont = document.getElementById('readersList');
                 const stats = document.getElementById('readerStats');
                 
-                stats.innerText = `${total} öğrenciden ${list.length} kişi ödevi görüntüledi.`;
+                stats.innerText = `${total} öğrenciden ${list.length} kişi ödevi tamamladı.`;
                 cont.innerHTML = list.length > 0 
                     ? list.map(name => `<li><span style="color:var(--success)">✓</span> ${name}</li>`).join('') 
-                    : "<li style='border:none; color:var(--text-muted)'>Henüz kimse görüntülemedi.</li>";
+                    : "<li style='border:none; color:var(--text-muted)'>Henüz kimse tamamlamadı.</li>";
                 
                 document.getElementById('readersModal').style.display = 'flex';
+            };
+
+            // 7b. ÖĞRENCİ DEĞERLENDİRME PANELİ AÇ/KAPA (YENİ)
+            window.toggleEvalPanel = (hwId) => {
+                const panel = document.getElementById(`evalPanel-${hwId}`);
+                if (panel) panel.classList.toggle('open');
+            };
+
+            // 7c. PUAN SEÇİMİ (YENİ) - sadece görsel state, kayıt "DEĞERLENDİRMEYİ KAYDET" ile yapılır
+            window.setHwEvalScore = (btnEl, hwId, studentName, score) => {
+                const row = btnEl.closest('.eval-student-row');
+                if (!row) return;
+                row.querySelectorAll('.eval-score-btn').forEach(b => {
+                    b.classList.toggle('active', parseInt(b.dataset.score) === score);
+                });
+                row.dataset.selectedScore = score;
+            };
+
+            // 7d. ÖĞRENCİ DEĞERLENDİRMESİNİ KAYDET (YENİ)
+            window.saveHwEvaluation = async (hwId, studentName) => {
+                const rowId = `evalRow-${hwId}-${encodeURIComponent(studentName)}`;
+                const row = document.getElementById(rowId);
+                if (!row) return;
+
+                const activeBtn = row.querySelector('.eval-score-btn.active');
+                const score = activeBtn ? parseInt(activeBtn.dataset.score) : null;
+                const noteVal = row.querySelector('.eval-note-input').value.trim();
+
+                if (!score) return alert("Lütfen 1-5 arası bir puan seçin!");
+
+                try {
+                    await updateDoc(doc(db, "odevler", hwId), {
+                        [`degerlendirmeler.${studentName}`]: {
+                            puan: score,
+                            not: noteVal,
+                            tarih: new Date()
+                        }
+                    });
+                    alert(`${studentName} için değerlendirme kaydedildi.`);
+                } catch (e) {
+                    console.error("Değerlendirme kayıt hatası:", e);
+                    alert("Değerlendirme kaydedilirken hata oluştu: " + e.message);
+                }
             };
 
             // 8. DİĞER FONKSİYONLAR (Düzenle, Sil, Kapat, Aktivite)
@@ -1077,9 +1254,10 @@ window.submitHw = async () => {
                 document.getElementById('hwDesc').value = data.aciklama;
                 document.getElementById('submitHwBtn').innerText = "GÜNCELLEMEYİ KAYDET";
                 setTimeout(() => {
-                    document.querySelectorAll('.hw-st-card').forEach(c => {
+                    document.querySelectorAll('#hwStudents .st-card').forEach(c => {
                         if(data.ogrenciler.includes(c.dataset.name)) c.classList.add('selected');
                     });
+                    if (typeof checkAllSelectedStatus === "function") checkAllSelectedStatus();
                 }, 500);
             };
 
