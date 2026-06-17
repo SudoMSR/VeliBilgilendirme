@@ -7,6 +7,9 @@
     <link rel="icon" type="image/jpeg" href="logo2.jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -22,10 +25,12 @@
         </div>
     </div>
     <div class="nav-bar">
-        <button class="nav-btn active" onclick="switchTab('odevEkle', this)">Ödev Gönder</button>
+        <button class="nav-btn active" onclick="switchTab('odevTakip', this)">Gönderilen Ödevler</button>
         <button class="nav-btn" onclick="switchTab('aktiviteBildir', this)">Davranış</button>
-        <button class="nav-btn" onclick="switchTab('odevTakip', this)">Gönderilen Ödevler</button>
-        <button class="nav-btn" onclick="switchTab('denemeAnaliz', this)">📊 Deneme Ekle</button>
+        <button class="nav-btn" onclick="switchTab('mesajlar', this)">Mesajlar</button>
+        <button class="nav-btn" onclick="switchTab('duyurular', this)">Duyurular</button>
+        <button class="nav-btn" onclick="switchTab('odevEkle', this)">Ödev Gönder</button>
+        <button class="nav-btn" onclick="switchTab('denemeAnaliz', this)">Deneme Ekle</button>
     </div>
 </header>
 
@@ -78,16 +83,92 @@
                 <h3 style="margin: 0; font-size: 1rem; color: var(--text-muted);">📜 Geçmiş Değerlendirmeler</h3>
                 <span id="accIcon" style="transition: 0.3s; color: var(--primary); font-weight: bold;">▼</span>
             </div>
-            <div id="sentActivities" style="display: none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
-                <div id="pastActivitiesList"></div>
+<!-- "Geçmiş Değerlendirmeler" accordion içine export butonu -->
+<div id="sentActivities" style="display: none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+    <!-- EXPORT BUTONU EKLE -->
+    <div class="export-bar" style="margin-bottom: 15px;">
+        <div class="export-dropdown">
+            <button class="export-btn" onclick="toggleExportDropdown('actExportDropdown')" style="font-size: 0.7rem; padding: 6px 12px;">
+                📥 Dışa Aktar ▾
+            </button>
+            <div id="actExportDropdown" class="export-dropdown-content" style="min-width: 180px;">
+                <div class="export-option excel" onclick="exportData('excel', 'aktiviteBildir')">
+                    <span class="icon">📊</span>
+                    <div>
+                        <strong>Excel (.xlsx)</strong>
+                    </div>
+                </div>
+                <div class="export-option csv" onclick="exportData('csv', 'aktiviteBildir')">
+                    <span class="icon">📄</span>
+                    <div>
+                        <strong>CSV</strong>
+                    </div>
+                </div>
+                <div class="export-option pdf" onclick="exportData('pdf', 'aktiviteBildir')">
+                    <span class="icon">📕</span>
+                    <div>
+                        <strong>PDF</strong>
+                    </div>
+                </div>
+                <div class="export-option json" onclick="exportData('json', 'aktiviteBildir')">
+                    <span class="icon">🔧</span>
+                    <div>
+                        <strong>JSON</strong>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div id="odevTakip" class="tab-content">
-        <h3>📋 Ödev Durumları</h3>
-        <div id="trackingList"></div>
+    
+    <div id="pastActivitiesList"></div>
+</div>
+        </div>
     </div>
+
+<div id="odevTakip" class="tab-content">
+    <h3>📋 Ödev Durumları</h3>
+    
+    <!-- EXPORT BUTONU EKLE -->
+    <div class="export-bar">
+        <div class="export-dropdown">
+            <button class="export-btn" onclick="toggleExportDropdown('hwExportDropdown')">
+                📥 Dışa Aktar ▾
+            </button>
+            <div id="hwExportDropdown" class="export-dropdown-content">
+                <div class="export-option excel" onclick="exportData('excel', 'odevTakip')">
+                    <span class="icon">📊</span>
+                    <div>
+                        <strong>Excel (.xlsx)</strong>
+                        <small>Microsoft Excel formatı</small>
+                    </div>
+                </div>
+                <div class="export-option csv" onclick="exportData('csv', 'odevTakip')">
+                    <span class="icon">📄</span>
+                    <div>
+                        <strong>CSV</strong>
+                        <small>Virgülle ayrılmış değerler</small>
+                    </div>
+                </div>
+                <div class="export-option pdf" onclick="exportData('pdf', 'odevTakip')">
+                    <span class="icon">📕</span>
+                    <div>
+                        <strong>PDF</strong>
+                        <small>Yazdırılabilir rapor</small>
+                    </div>
+                </div>
+                <div class="export-option json" onclick="exportData('json', 'odevTakip')">
+                    <span class="icon">🔧</span>
+                    <div>
+                        <strong>JSON</strong>
+                        <small>Veri alışverişi formatı</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="trackingList"></div>
+</div>
 
     <div id="denemeAnaliz" class="tab-content">
         <div class="card" style="margin-top:20px; border: 1px solid var(--border);">
@@ -184,16 +265,248 @@
             </div>
         </div>
 
-        <div class="card" style="margin-top: 25px; border-top: 4px solid var(--primary);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; font-size: 1rem;">📜 Kayıtlı Deneme Sonuçları</h3>
-                
-            </div>
-            <div id="pastResultsList" style="max-height: 500px; overflow-y: auto;">
-                <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px;">Henüz sonuç eklenmemiş...</p>
+<div class="card" style="margin-top: 25px; border-top: 4px solid var(--primary);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <h3 style="margin: 0; font-size: 1rem;">📜 Kayıtlı Deneme Sonuçları</h3>
+        
+        <!-- EXPORT BUTONU EKLE -->
+        <div class="export-dropdown">
+            <button class="export-btn" onclick="toggleExportDropdown('denemeExportDropdown')" style="font-size: 0.7rem; padding: 6px 12px;">
+                📥 Tümünü Dışa Aktar ▾
+            </button>
+            <div id="denemeExportDropdown" class="export-dropdown-content" style="min-width: 180px; right: 0; left: auto;">
+                <div class="export-option excel" onclick="exportData('excel', 'denemeAnaliz')">
+                    <span class="icon">📊</span>
+                    <div>
+                        <strong>Excel (.xlsx)</strong>
+                    </div>
+                </div>
+                <div class="export-option csv" onclick="exportData('csv', 'denemeAnaliz')">
+                    <span class="icon">📄</span>
+                    <div>
+                        <strong>CSV</strong>
+                    </div>
+                </div>
+                <div class="export-option pdf" onclick="exportData('pdf', 'denemeAnaliz')">
+                    <span class="icon">📕</span>
+                    <div>
+                        <strong>PDF</strong>
+                    </div>
+                </div>
+                <div class="export-option json" onclick="exportData('json', 'denemeAnaliz')">
+                    <span class="icon">🔧</span>
+                    <div>
+                        <strong>JSON</strong>
+                    </div>
+                </div>
             </div>
         </div>
-    </div> </main>
+    </div>
+    <div id="pastResultsList" style="max-height: 500px; overflow-y: auto;">
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px;">Henüz sonuç eklenmemiş...</p>
+    </div>
+</div>
+    </div> 
+
+    <div id="duyurular" class="tab-content">
+    <!-- DUYURU OLUŞTURMA FORMU -->
+    <div class="duyuru-form-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">📢 Yeni Duyuru Oluştur</h3>
+            <button id="toggleFormBtn" class="btn-ghost" onclick="toggleDuyuruForm()" style="font-size: 0.75rem;">
+                Formu Gizle ▲
+            </button>
+        </div>
+        
+        <div id="duyuruForm">
+            <!-- Duyuru Tipi -->
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 8px;">📌 DUYURU TİPİ</label>
+            <div class="duyuru-tipi-select">
+                <button class="tip-btn active" data-tip="genel" onclick="setDuyuruTipi('genel', this)">📋 Genel</button>
+                <button class="tip-btn" data-tip="acil" onclick="setDuyuruTipi('acil', this)">🚨 Acil</button>
+                <button class="tip-btn" data-tip="etkinlik" onclick="setDuyuruTipi('etkinlik', this)">🎉 Etkinlik</button>
+            </div>
+            
+            <!-- Başlık -->
+            <input type="text" id="duyuruBaslik" placeholder="Duyuru başlığı..." style="margin-top: 15px;">
+            
+            <!-- İçerik -->
+            <textarea id="duyuruIcerik" rows="4" placeholder="Duyuru içeriğini buraya yazın..."></textarea>
+            
+            <!-- Hedef Kitle -->
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin: 15px 0 8px;">👥 HEDEF KİTLE</label>
+            <div class="target-group">
+                <button class="target-btn active" data-target="Veliler" onclick="setTargetAudience('Veliler', this)">👨‍👩‍👧 Veliler</button>
+                <button class="target-btn" data-target="Öğrenciler" onclick="setTargetAudience('Öğrenciler', this)">🎒 Öğrenciler</button>
+                <button class="target-btn" data-target="Herkes" onclick="setTargetAudience('Herkes', this)">👥 Herkes</button>
+            </div>
+            
+            <!-- Sınıf Seçimi -->
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin: 15px 0 8px;">🏫 HEDEF SINIFLAR (Opsiyonel)</label>
+            <div id="sinifChipsContainer" class="class-chips"></div>
+            
+            <!-- Öğrenci Seçimi (Sınıf seçilince otomatik yüklenir) -->
+            <div id="ogrenciSelectArea" style="display: none; margin-top: 15px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 8px;">🎯 BELİRLİ ÖĞRENCİLER (Opsiyonel)</label>
+                <input type="text" class="search-input" id="duyuruOgrenciSearch" placeholder="🔍 Öğrenci adı veya numarası ile ara..." oninput="filterDuyuruOgrenciler(this.value)">
+                <div id="duyuruOgrenciList" class="student-grid" style="max-height: 200px; margin-top: 10px;"></div>
+                <div style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted);">
+                    Seçilen öğrenciler: <span id="selectedOgrenciCount" style="color: var(--primary); font-weight: 800;">0</span>
+                </div>
+            </div>
+            
+            <!-- Planlanan Tarih -->
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin: 15px 0 8px;">📅 PLANLANAN TARİH</label>
+            <input type="datetime-local" id="duyuruPlanlananTarih">
+            
+            <!-- Dosya Eki -->
+            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin: 15px 0 8px;">📁 DOSYA EKİ (Opsiyonel)</label>
+            <input type="file" id="duyuruDosya" style="padding: 10px; font-size: 0.8rem;">
+            
+            <!-- Gönder Butonu -->
+            <button class="btn-modern" id="duyuruSubmitBtn" onclick="submitDuyuru()" style="margin-top: 20px;">
+                📢 DUYURUYU YAYINLA
+            </button>
+        </div>
+    </div>
+    
+    <!-- FİLTRELEME ALANI -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+        <h3 style="margin: 0;">📋 Duyuru Geçmişi</h3>
+        <div class="export-dropdown">
+            <button class="export-btn" onclick="toggleExportDropdown('duyuruExportDropdown')" style="font-size: 0.7rem; padding: 6px 12px;">
+                📥 Dışa Aktar ▾
+            </button>
+            <div id="duyuruExportDropdown" class="export-dropdown-content" style="min-width: 180px; right: 0; left: auto;">
+                <div class="export-option excel" onclick="exportData('excel', 'duyurular')">
+                    <span class="icon">📊</span><div><strong>Excel (.xlsx)</strong></div>
+                </div>
+                <div class="export-option csv" onclick="exportData('csv', 'duyurular')">
+                    <span class="icon">📄</span><div><strong>CSV</strong></div>
+                </div>
+                <div class="export-option pdf" onclick="exportData('pdf', 'duyurular')">
+                    <span class="icon">📕</span><div><strong>PDF</strong></div>
+                </div>
+                <div class="export-option json" onclick="exportData('json', 'duyurular')">
+                    <span class="icon">🔧</span><div><strong>JSON</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all" onclick="filterDuyurular('all', this)">Tümü</button>
+        <button class="filter-btn" data-filter="Veliler" onclick="filterDuyurular('Veliler', this)">👨‍👩‍👧 Velilere</button>
+        <button class="filter-btn" data-filter="Öğrenciler" onclick="filterDuyurular('Öğrenciler', this)">🎒 Öğrencilere</button>
+        <button class="filter-btn" data-filter="Herkes" onclick="filterDuyurular('Herkes', this)">👥 Herkese</button>
+    </div>
+    
+    <!-- DUYURU LİSTESİ -->
+    <div id="duyuruListesi">
+        <div class="empty-state">
+            <div class="icon">📭</div>
+            <h3>Henüz duyuru yok</h3>
+            <p>Yukarıdaki formu kullanarak ilk duyurunuzu oluşturun.</p>
+        </div>
+    </div>
+</div>
+
+<div id="mesajlar" class="tab-content">
+    <div class="messaging-container">
+        <!-- SOL PANEL - SOHBET LİSTESİ -->
+        <div class="chat-list-panel" id="chatListPanel">
+            <div class="chat-list-header">
+                <h3>💬 Mesajlar</h3>
+                <button class="new-chat-btn" onclick="openNewChatModal()" title="Yeni Sohbet">+</button>
+            </div>
+            
+            <div class="chat-search">
+                <input type="text" id="chatSearchInput" placeholder="🔍 Sohbet ara..." oninput="filterChats(this.value)">
+            </div>
+            
+            <div class="chat-filter-tabs">
+                <button class="chat-filter-tab active" onclick="filterChatsByType('all', this)">Tümü</button>
+                <button class="chat-filter-tab" onclick="filterChatsByType('ogrenci', this)">🎒 Öğrenci</button>
+                <button class="chat-filter-tab" onclick="filterChatsByType('yonetim', this)">🏫 Yönetim</button>
+            </div>
+            
+            <div class="chat-list" id="chatList">
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">💬</div>
+                    <p style="font-size: 0.85rem;">Henüz sohbet bulunmuyor</p>
+                    <p style="font-size: 0.75rem;">+ butonuna tıklayarak yeni sohbet başlatın</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAĞ PANEL - MESAJ ALANI -->
+        <div class="chat-main-panel" id="chatMainPanel">
+            <!-- Varsayılan boş durum -->
+            <div class="chat-empty-state" id="chatEmptyState">
+                <div class="icon">💭</div>
+                <h3>Sohbet Seçin</h3>
+                <p>Görüşmek istediğiniz kişiyi sol panelden seçin veya yeni bir sohbet başlatın.</p>
+                <button class="btn-modern" style="width: auto; padding: 12px 30px;" onclick="openNewChatModal()">
+                    + Yeni Sohbet Başlat
+                </button>
+            </div>
+            
+            <!-- Aktif sohbet alanı -->
+            <div id="activeChatArea" style="display: none; flex: 1; flex-direction: column; height: 100%;">
+                <div class="chat-header">
+                    <button class="back-btn" onclick="closeActiveChat()">←</button>
+                    <div class="chat-avatar ogrenci" id="activeChatAvatar" style="width: 40px; height: 40px; font-size: 0.9rem;"></div>
+                    <div class="chat-header-info">
+                        <div class="chat-header-name" id="activeChatName"></div>
+                        <div class="chat-header-status" id="activeChatStatus">Çevrimiçi</div>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button onclick="searchInChat()" title="Mesajda Ara">🔍</button>
+                        <button onclick="deleteChatConfirm()" title="Sohbeti Sil">🗑️</button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages" style="position: relative;">
+                    <button class="scroll-bottom-btn" id="scrollBottomBtn" onclick="scrollToBottom()">
+                        ↓ <span class="badge" id="newMsgBadge" style="display: none;">0</span>
+                    </button>
+                </div>
+                
+                <div class="chat-input-area">
+                    <textarea id="messageInput" placeholder="Mesajınızı yazın..." rows="1" 
+                              onkeydown="handleMessageKey(event)"></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Gönder">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- YENİ SOHBET MODAL -->
+<div id="newChatModal" class="modal">
+    <div class="modal-body new-chat-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">💬 Yeni Sohbet Başlat</h3>
+            <button onclick="closeModal('newChatModal')" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div class="chat-filter-tabs" style="margin-bottom: 15px;">
+            <button class="chat-filter-tab active" onclick="switchNewChatTab('ogrenci', this)">🎒 Öğrenci</button>
+            <button class="chat-filter-tab" onclick="switchNewChatTab('yonetim', this)">🏫 Yönetim</button>
+        </div>
+        
+        <input type="text" class="search-input" id="newChatSearch" placeholder="İsim veya numara ile ara..." oninput="searchUsersForNewChat(this.value)">
+        
+        <div class="user-search-results" id="newChatUserResults">
+            <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                Arama yapmak için yukarıya yazın...
+            </div>
+        </div>
+    </div>
+</div>
+</main>
 
 <div id="readersModal" class="modal">
     <div class="modal-body">
@@ -849,6 +1162,1253 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+/* --- EXPORT BUTTON STYLES --- */
+.export-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.export-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.export-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--primary-glow);
+}
+
+.export-btn.excel:hover { background: #217346; border-color: #217346; }
+.export-btn.csv:hover { background: #16a34a; border-color: #16a34a; }
+.export-btn.pdf:hover { background: #dc2626; border-color: #dc2626; }
+.export-btn.json:hover { background: #f59e0b; border-color: #f59e0b; }
+
+.export-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.export-dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 8px;
+    min-width: 200px;
+    z-index: 1000;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    backdrop-filter: blur(20px);
+    margin-top: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.export-dropdown-content.show {
+    display: block;
+}
+
+.export-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.export-option:hover {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.export-option .icon {
+    font-size: 1.2rem;
+    width: 30px;
+    text-align: center;
+}
+
+.export-option small {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 400;
+}
+
+/* Toast Bildirimi */
+.export-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 15px 30px rgba(46, 213, 115, 0.4);
+}
+
+.export-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Deneme grubu kartı export butonları */
+.deneme-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.deneme-export-mini {
+    display: flex;
+    gap: 4px;
+}
+
+.deneme-export-mini button {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.deneme-export-mini button:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+/* --- DUYURU SİSTEMİ STİLLERİ --- */
+
+/* Duyuru form kartı */
+.duyuru-form-card {
+    background: var(--card-bg);
+    border-radius: 28px;
+    padding: 30px;
+    border: 1px solid var(--border);
+    margin-bottom: 25px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* Hedef kitle seçim butonları */
+.target-group {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.target-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    background: rgba(15, 23, 42, 0.4);
+    color: var(--text-muted);
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.target-btn:hover {
+    border-color: var(--primary);
+    color: white;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.target-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 8px 20px var(--primary-glow);
+    transform: translateY(-2px);
+}
+
+/* Sınıf seçim çipleri */
+.class-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.class-chip {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 25px;
+    background: rgba(15, 23, 42, 0.4);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.class-chip:hover {
+    border-color: var(--primary);
+    color: white;
+}
+
+.class-chip.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+/* Duyuru kartları */
+.duyuru-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: slideUp 0.4s ease;
+}
+
+.duyuru-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+    border-color: var(--primary);
+}
+
+.duyuru-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px 0 0 4px;
+}
+
+.duyuru-card.acil::before {
+    background: var(--danger);
+}
+
+.duyuru-card.bilgi::before {
+    background: #3b82f6;
+}
+
+.duyuru-card.etkinlik::before {
+    background: #10b981;
+}
+
+/* Duyuru başlık alanı */
+.duyuru-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.duyuru-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: white;
+    flex: 1;
+    min-width: 200px;
+}
+
+.duyuru-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Hedef kitle rozeti */
+.target-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.target-badge.veliler {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.target-badge.ogrenciler {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.target-badge.ogretmenler {
+    background: rgba(99, 102, 241, 0.15);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.target-badge.herkes {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Duyuru içeriği */
+.duyuru-content {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+/* Duyuru detay bilgileri */
+.duyuru-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 15px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+.detail-item .icon {
+    font-size: 1rem;
+}
+
+/* Duyuru işlem butonları */
+.duyuru-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    justify-content: flex-end;
+}
+
+.duyuru-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.duyuru-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.duyuru-btn.danger:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+/* Duyuru filtreleme */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 25px;
+    background: rgba(15, 23, 42, 0.4);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Boş durum */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.empty-state .icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 0.85rem;
+}
+
+/* Duyuru tipi seçimi */
+.duyuru-tipi-select {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.tip-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px;
+    border: 2px solid var(--border);
+    background: rgba(15, 23, 42, 0.4);
+    color: var(--text-muted);
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.tip-btn:hover {
+    border-color: var(--primary);
+    color: white;
+}
+
+.tip-btn.active[data-tip="genel"] {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+.tip-btn.active[data-tip="acil"] {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: white;
+}
+
+.tip-btn.active[data-tip="etkinlik"] {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+/* Sınıf listesi container */
+.class-list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 5px;
+    margin: 10px 0;
+}
+
+/* Arama inputu */
+.search-input {
+    width: 100%;
+    padding: 12px 16px;
+    margin: 10px 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.4);
+    color: white;
+    font-size: 0.9rem;
+}
+
+.search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    outline: none;
+}
+
+/* Animasyonlu kart */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.duyuru-card {
+    animation: slideInLeft 0.5s ease forwards;
+}
+
+.duyuru-card:nth-child(1) { animation-delay: 0s; }
+.duyuru-card:nth-child(2) { animation-delay: 0.1s; }
+.duyuru-card:nth-child(3) { animation-delay: 0.2s; }
+.duyuru-card:nth-child(4) { animation-delay: 0.3s; }
+.duyuru-card:nth-child(5) { animation-delay: 0.4s; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .duyuru-header {
+        flex-direction: column;
+    }
+    
+    .target-group {
+        flex-direction: column;
+    }
+    
+    .duyuru-actions {
+        flex-direction: column;
+    }
+    
+    .duyuru-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ==================== MESAJLAŞMA SİSTEMİ STİLLERİ ==================== */
+
+/* Ana container */
+.messaging-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 20px;
+    height: calc(100vh - 200px);
+    min-height: 600px;
+    max-height: 800px;
+}
+
+/* Sol Panel - Sohbet Listesi */
+.chat-list-panel {
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-list-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-list-header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.new-chat-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.new-chat-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px var(--primary-glow);
+}
+
+.chat-search {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.chat-search input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 25px;
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.4);
+    color: white;
+    font-size: 0.85rem;
+}
+
+.chat-search input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* Filtre butonları */
+.chat-filter-tabs {
+    display: flex;
+    padding: 10px 20px;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.chat-filter-tab {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.chat-filter-tab.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.chat-filter-tab .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    margin-left: 4px;
+}
+
+/* Sohbet listesi */
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.chat-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chat-list::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+/* Sohbet kartı */
+.chat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+}
+
+.chat-item:hover {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.chat-item.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--primary);
+}
+
+.chat-item.unread {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* Avatar */
+.chat-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.chat-avatar.ogrenci {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+}
+
+.chat-avatar.yonetim {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.chat-avatar.ogretmen {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.online-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #10b981;
+    border: 2px solid var(--card-bg);
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.unread-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary);
+    position: absolute;
+    top: -2px;
+    right: -2px;
+}
+
+/* Sohbet içeriği */
+.chat-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-item-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.role-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.role-badge.ogrenci {
+    background: rgba(99, 102, 241, 0.2);
+    color: #6366f1;
+}
+
+.role-badge.yonetim {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.chat-item-preview {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-item-meta {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.chat-item-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.chat-item-count {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Sağ Panel - Mesaj Alanı */
+.chat-main-panel {
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Sohbet başlığı */
+.chat-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(15, 23, 42, 0.3);
+}
+
+.chat-header .back-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.chat-header-info {
+    flex: 1;
+}
+
+.chat-header-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+}
+
+.chat-header-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.chat-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-header-actions button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-header-actions button:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+/* Mesajlar alanı */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.2);
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+/* Tarih ayracı */
+.date-divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.date-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+}
+
+.date-divider span {
+    background: rgba(15, 23, 42, 0.8);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    position: relative;
+    border: 1px solid var(--border);
+}
+
+/* Mesaj balonu */
+.message-wrapper {
+    display: flex;
+    margin-bottom: 4px;
+    animation: messageSlide 0.3s ease;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-wrapper.sent {
+    justify-content: flex-end;
+}
+
+.message-wrapper.received {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message-wrapper.sent .message-bubble {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message-wrapper.received .message-bubble {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+}
+
+.message-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.message-time {
+    font-size: 0.65rem;
+    margin-top: 4px;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.message-wrapper.sent .message-time {
+    justify-content: flex-end;
+    color: rgba(255,255,255,0.7);
+}
+
+.message-wrapper.received .message-time {
+    color: var(--text-muted);
+}
+
+.message-status {
+    font-size: 0.7rem;
+}
+
+/* Mesaj yazma alanı */
+.chat-input-area {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: rgba(15, 23, 42, 0.3);
+}
+
+.chat-input-area textarea {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 25px;
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.4);
+    color: white;
+    resize: none;
+    font-size: 0.9rem;
+    max-height: 100px;
+    min-height: 44px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.chat-input-area textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: 0.3s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px var(--primary-glow);
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Boş durum - sohbet seçilmedi */
+.chat-empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+}
+
+.chat-empty-state .icon {
+    font-size: 5rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.chat-empty-state h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.chat-empty-state p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+
+/* Yeni sohbet modal */
+.new-chat-modal .modal-body {
+    max-width: 500px;
+}
+
+.user-search-results {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+.user-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+}
+
+.user-result-item:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+}
+
+.user-result-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.user-result-info {
+    flex: 1;
+}
+
+.user-result-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.user-result-detail {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Yazıyor göstergesi */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .messaging-container {
+        grid-template-columns: 1fr;
+        height: calc(100vh - 150px);
+    }
+    
+    .chat-list-panel {
+        display: flex;
+    }
+    
+    .chat-main-panel {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        border-radius: 0;
+    }
+    
+    .chat-main-panel.active {
+        display: flex;
+    }
+    
+    .chat-header .back-btn {
+        display: block;
+    }
+    
+    .message-bubble {
+        max-width: 85%;
+    }
+}
+
+/* Scroll to bottom button */
+.scroll-bottom-btn {
+    position: absolute;
+    bottom: 100px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: none;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    display: none;
+    z-index: 10;
+    animation: fadeIn 0.3s ease;
+}
+
+.scroll-bottom-btn.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scroll-bottom-btn .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--danger);
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
 </style>
 
 
@@ -856,7 +2416,7 @@
     // 1. Gerekli Firebase Fonksiyonlarını Import Ediyoruz
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { 
-            getFirestore, doc, collection, addDoc, updateDoc, 
+            getFirestore, doc, collection, addDoc, setDoc, updateDoc, 
             getDocs, deleteDoc, query, where, onSnapshot, serverTimestamp, getDoc 
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         
@@ -1990,6 +3550,1542 @@ window.syncDenemeName = (val) => {
         }
     }
 };
+
+// ==================== EXPORT MODÜLÜ ====================
+
+// Toast bildirimi gösterme
+window.showToast = (message, type = 'success') => {
+    // Mevcut toast varsa kaldır
+    const existingToast = document.querySelector('.export-toast');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'export-toast';
+    toast.style.background = type === 'error' ? 'var(--danger)' : 'var(--success)';
+    toast.innerHTML = `✅ ${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+};
+
+// Dropdown menüyü aç/kapa
+window.toggleExportDropdown = (id) => {
+    const dropdown = document.getElementById(id);
+    if (!dropdown) return;
+    
+    // Diğer dropdownları kapat
+    document.querySelectorAll('.export-dropdown-content').forEach(d => {
+        if (d.id !== id) d.classList.remove('show');
+    });
+    
+    dropdown.classList.toggle('show');
+};
+
+// Sayfa herhangi bir yere tıklandığında dropdownları kapat
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.export-dropdown')) {
+        document.querySelectorAll('.export-dropdown-content').forEach(d => {
+            d.classList.remove('show');
+        });
+    }
+});
+
+// Ana export fonksiyonu
+window.exportData = (format, tabId) => {
+    let data = [];
+    let fileName = '';
+    let columns = [];
+    
+    switch(tabId) {
+        case 'odevTakip':
+            data = collectHomeworkData();
+            fileName = `Odev_Takip_${new Date().toLocaleDateString('tr-TR')}`;
+            columns = ['Ödev Başlığı', 'Sınıf', 'Teslim Tarihi', 'Tamamlanma', 'Toplam Öğrenci'];
+            break;
+        case 'aktiviteBildir':
+            data = collectActivityData();
+            fileName = `Davranis_Degerlendirme_${new Date().toLocaleDateString('tr-TR')}`;
+            columns = ['Öğrenci', 'Sınıf', 'Puan', 'Not', 'Tarih'];
+            break;
+        case 'denemeAnaliz':
+            data = collectDenemeData();
+            fileName = `Deneme_Sonuclari_${new Date().toLocaleDateString('tr-TR')}`;
+            columns = ['Sınav Adı', 'Tarih', 'Öğrenci', 'Türkçe', 'Matematik', 'Sosyal', 'Fen', 'Puan'];
+            break;
+        default:
+            showToast('Bu sekme için export desteklenmiyor', 'error');
+            return;
+    }
+    
+    if (!data || data.length === 0) {
+        showToast('Dışa aktarılacak veri bulunamadı!', 'error');
+        return;
+    }
+    
+    switch(format) {
+        case 'excel':
+            exportAsExcel(data, fileName, columns);
+            break;
+        case 'csv':
+            exportAsCSV(data, fileName, columns);
+            break;
+        case 'pdf':
+            exportAsPDF(data, fileName, columns, tabId);
+            break;
+        case 'json':
+            exportAsJSON(data, fileName);
+            break;
+    }
+    
+    // Dropdown'u kapat
+    document.querySelectorAll('.export-dropdown-content').forEach(d => d.classList.remove('show'));
+};
+
+// ========== VERİ TOPLAMA FONKSİYONLARI ==========
+
+// Ödev verilerini topla
+function collectHomeworkData() {
+    const trackingItems = document.querySelectorAll('#trackingList .track-item');
+    const data = [];
+    
+    trackingItems.forEach(item => {
+        const titleEl = item.querySelector('strong');
+        const infoEl = item.querySelector('small');
+        const badgeEl = item.querySelector('.read-badge');
+        
+        if (titleEl && infoEl && badgeEl) {
+            const title = titleEl.innerText;
+            const infoText = infoEl.innerText; // "Sınıf • Teslim: Tarih"
+            const [sinif, teslim] = infoText.split(' • Teslim: ');
+            const [tamamlanan, toplam] = badgeEl.innerText.split('/');
+            
+            data.push({
+                baslik: title,
+                sinif: sinif.trim(),
+                teslimTarihi: teslim ? teslim.trim() : '',
+                tamamlanma: parseInt(tamamlanan) || 0,
+                toplamOgrenci: parseInt(toplam) || 0
+            });
+        }
+    });
+    
+    return data;
+}
+
+// Aktivite verilerini topla
+function collectActivityData() {
+    const activityItems = document.querySelectorAll('#pastActivitiesList .activity-log-item');
+    const data = [];
+    
+    activityItems.forEach(item => {
+        const nameEl = item.querySelector('.activity-info strong');
+        const dateEl = item.querySelector('.activity-info span[style*="color"]');
+        const scoreEl = item.querySelector('span[style*="border-radius"]');
+        const noteEl = item.querySelector('.activity-notes');
+        const classEl = item.querySelector('.activity-info small');
+        
+        if (nameEl) {
+            data.push({
+                ogrenci: nameEl.innerText,
+                sinif: classEl ? classEl.innerText : '',
+                puan: scoreEl ? scoreEl.innerText.match(/\d+/)?.[0] || '' : '',
+                not: noteEl ? noteEl.innerText.replace(/"/g, '') : '',
+                tarih: dateEl ? dateEl.innerText : ''
+            });
+        }
+    });
+    
+    return data;
+}
+
+// Deneme verilerini topla
+function collectDenemeData() {
+    const data = [];
+    
+    // Akordeon gruplarından veri topla
+    document.querySelectorAll('.deneme-group-card').forEach(group => {
+        const headerEl = group.querySelector('[onclick*="toggleDenemeAcc"]');
+        const sinavAdi = headerEl ? headerEl.querySelector('strong').innerText : '';
+        const tarihEl = headerEl ? headerEl.querySelector('div[style*="font-size: 0.7rem"]') : null;
+        const tarih = tarihEl ? tarihEl.innerText.split(' • ')[0] : '';
+        
+        // Tablo satırlarından veri topla
+        group.querySelectorAll('tbody tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 4) {
+                const ogrenci = cells[0].innerText.trim();
+                const netlerText = cells[1].innerText.trim(); // "TR: 15.5 | MAT: 10"
+                const puan = cells[2].innerText.trim();
+                
+                // Netleri parse et
+                const trMatch = netlerText.match(/TR:\s*([\d.]+)/);
+                const matMatch = netlerText.match(/MAT:\s*([\d.]+)/);
+                const sosMatch = netlerText.match(/SOS:\s*([\d.]+)/);
+                const fenMatch = netlerText.match(/FEN:\s*([\d.]+)/);
+                
+                // Tablo yapısına göre netleri al
+                let turkce = trMatch ? parseFloat(trMatch[1]) : 0;
+                let matematik = matMatch ? parseFloat(matMatch[1]) : 0;
+                let sosyal = 0;
+                let fen = 0;
+                
+                // Eğer netler tek satırda hepsi varsa
+                const allNets = netlersText.match(/TR:\s*([\d.]+)\s*\|\s*MAT:\s*([\d.]+)\s*\|\s*SOS:\s*([\d.]+)\s*\|\s*FEN:\s*([\d.]+)/);
+                if (allNets) {
+                    turkce = parseFloat(allNets[1]);
+                    matematik = parseFloat(allNets[2]);
+                    sosyal = parseFloat(allNets[3]);
+                    fen = parseFloat(allNets[4]);
+                }
+                
+                data.push({
+                    sinavAdi: sinavAdi,
+                    tarih: tarih,
+                    ogrenci: ogrenci,
+                    turkce: turkce,
+                    matematik: matematik,
+                    sosyal: sosyal,
+                    fen: fen,
+                    puan: parseFloat(puan) || 0
+                });
+            }
+        });
+    });
+    
+    return data;
+}
+
+// ========== EXPORT FORMAT FONKSİYONLARI ==========
+
+// Excel export
+function exportAsExcel(data, fileName, columns) {
+    try {
+        // Veriyi düzenle
+        const wsData = [columns];
+        data.forEach(row => {
+            wsData.push(columns.map(col => {
+                // Türkçe karakterleri koru
+                const key = turkishToKey(col);
+                return row[key] !== undefined ? row[key] : '';
+            }));
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        
+        // Sütun genişliklerini ayarla
+        ws['!cols'] = columns.map(() => ({ wch: 20 }));
+        
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Veriler');
+        XLSX.writeFile(wb, `${fileName}.xlsx`);
+        
+        showToast(`${data.length} kayıt Excel olarak indirildi!`);
+    } catch (e) {
+        console.error('Excel export hatası:', e);
+        showToast('Excel oluşturulurken hata oluştu!', 'error');
+    }
+}
+
+// CSV export
+function exportAsCSV(data, fileName, columns) {
+    try {
+        let csv = '\uFEFF'; // BOM for UTF-8 (Türkçe karakterler için)
+        
+        // Başlık satırı
+        csv += columns.join(';') + '\n';
+        
+        // Veri satırları
+        data.forEach(row => {
+            csv += columns.map(col => {
+                const key = turkishToKey(col);
+                let value = row[key] !== undefined ? row[key] : '';
+                // Noktalı virgül içeren değerleri tırnak içine al
+                if (typeof value === 'string' && value.includes(';')) {
+                    value = `"${value}"`;
+                }
+                return value;
+            }).join(';') + '\n';
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${fileName}.csv`;
+        link.click();
+        
+        showToast(`${data.length} kayıt CSV olarak indirildi!`);
+    } catch (e) {
+        console.error('CSV export hatası:', e);
+        showToast('CSV oluşturulurken hata oluştu!', 'error');
+    }
+}
+
+// PDF export
+function exportAsPDF(data, fileName, columns, tabId) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+        
+        // Başlık
+        doc.setFontSize(16);
+        doc.setTextColor(99, 102, 241);
+        const titles = {
+            'odevTakip': '📋 Ödev Takip Raporu',
+            'aktiviteBildir': '✨ Davranış Değerlendirme Raporu',
+            'denemeAnaliz': '📊 Deneme Sonuçları Raporu'
+        };
+        doc.text(titles[tabId] || 'Rapor', 14, 20);
+        
+        // Tarih
+        doc.setFontSize(10);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`Oluşturulma: ${new Date().toLocaleString('tr-TR')}`, 14, 28);
+        
+        // Tablo verisi
+        const tableData = data.map(row => 
+            columns.map(col => {
+                const key = turkishToKey(col);
+                return row[key] !== undefined ? String(row[key]) : '';
+            })
+        );
+        
+        doc.autoTable({
+            head: [columns],
+            body: tableData,
+            startY: 35,
+            styles: {
+                fontSize: 8,
+                cellPadding: 3,
+                lineColor: [200, 200, 200],
+                lineWidth: 0.1,
+            },
+            headStyles: {
+                fillColor: [99, 102, 241],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+            },
+            alternateRowStyles: {
+                fillColor: [245, 247, 250],
+            },
+            margin: { top: 35 },
+        });
+        
+        doc.save(`${fileName}.pdf`);
+        showToast(`${data.length} kayıt PDF olarak indirildi!`);
+    } catch (e) {
+        console.error('PDF export hatası:', e);
+        showToast('PDF oluşturulurken hata oluştu!', 'error');
+    }
+}
+
+// JSON export
+function exportAsJSON(data, fileName) {
+    try {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${fileName}.json`;
+        link.click();
+        
+        showToast(`${data.length} kayıt JSON olarak indirildi!`);
+    } catch (e) {
+        console.error('JSON export hatası:', e);
+        showToast('JSON oluşturulurken hata oluştu!', 'error');
+    }
+}
+
+// Yardımcı: Türkçe sütun adını obje key'ine çevir
+function turkishToKey(colName) {
+    const map = {
+        'Ödev Başlığı': 'baslik',
+        'Sınıf': 'sinif',
+        'Teslim Tarihi': 'teslimTarihi',
+        'Tamamlanma': 'tamamlanma',
+        'Toplam Öğrenci': 'toplamOgrenci',
+        'Öğrenci': 'ogrenci',
+        'Puan': 'puan',
+        'Not': 'not',
+        'Tarih': 'tarih',
+        'Sınav Adı': 'sinavAdi',
+        'Türkçe': 'turkce',
+        'Matematik': 'matematik',
+        'Sosyal': 'sosyal',
+        'Fen': 'fen',
+        'Başlık': 'baslik',
+        'İçerik': 'icerik',
+        'Hedef Kitle': 'hedefKitle',
+        'Paylaşan': 'paylasan',
+        'Planlanan Tarih': 'planlananTarih'
+    };
+    return map[colName] || colName.toLowerCase().replace(/ /g, '_');
+}
+// Deneme grubu için mini export
+window.exportDenemeGroup = (format, accordionId, denemeAdi) => {
+    const group = document.getElementById(accordionId)?.closest('.deneme-group-card');
+    if (!group) return;
+    
+    const data = [];
+    group.querySelectorAll('tbody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 4) {
+            const netlerText = cells[1].innerText.trim();
+            
+            // Tüm netleri parse et
+            const trMatch = netlerText.match(/TR:\s*([\d.]+)/);
+            const matMatch = netlerText.match(/MAT:\s*([\d.]+)/);
+            const sosMatch = netlerText.match(/SOS:\s*([\d.]+)/);
+            const fenMatch = netlerText.match(/FEN:\s*([\d.]+)/);
+            
+            data.push({
+                sinavAdi: denemeAdi,
+                ogrenci: cells[0].innerText.trim(),
+                turkce: trMatch ? parseFloat(trMatch[1]) : 0,
+                matematik: matMatch ? parseFloat(matMatch[1]) : 0,
+                sosyal: sosMatch ? parseFloat(sosMatch[1]) : 0,
+                fen: fenMatch ? parseFloat(fenMatch[1]) : 0,
+                puan: parseFloat(cells[2].innerText.trim()) || 0
+            });
+        }
+    });
+    
+    const columns = ['Sınav Adı', 'Öğrenci', 'Türkçe', 'Matematik', 'Sosyal', 'Fen', 'Puan'];
+    const fileName = `${denemeAdi.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]/g, '_')}_Export`;
+    
+    switch(format) {
+        case 'excel': exportAsExcel(data, fileName, columns); break;
+        case 'csv': exportAsCSV(data, fileName, columns); break;
+        case 'pdf': exportAsPDF(data, fileName, columns, 'denemeAnaliz'); break;
+        case 'json': exportAsJSON(data, fileName); break;
+    }
+};
+
+// ==================== DUYURU MODÜLÜ ====================
+
+// Global duyuru değişkenleri
+let selectedTargetAudience = 'Veliler';
+let selectedDuyuruTipi = 'genel';
+let selectedSiniflar = [];
+let selectedOgrenciler = [];
+let allStudentsForDuyuru = [];
+let editingDuyuruId = null;
+
+// Duyuru formunu göster/gizle
+window.toggleDuyuruForm = () => {
+    const form = document.getElementById('duyuruForm');
+    const btn = document.getElementById('toggleFormBtn');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        btn.innerHTML = 'Formu Gizle ▲';
+    } else {
+        form.style.display = 'none';
+        btn.innerHTML = 'Formu Göster ▼';
+    }
+};
+
+// Duyuru tipi seçimi
+window.setDuyuruTipi = (tip, btn) => {
+    selectedDuyuruTipi = tip;
+    document.querySelectorAll('.tip-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+};
+
+// Hedef kitle seçimi
+window.setTargetAudience = (target, btn) => {
+    selectedTargetAudience = target;
+    document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Öğrenci seçim alanını göster/gizle
+    const ogrenciArea = document.getElementById('ogrenciSelectArea');
+    if (target === 'Öğrenciler' || target === 'Herkes') {
+        if (ogrenciArea) ogrenciArea.style.display = 'block';
+        loadDuyuruOgrenciler();
+    } else {
+        if (ogrenciArea) ogrenciArea.style.display = 'none';
+        selectedOgrenciler = [];
+        updateSelectedOgrenciCount();
+    }
+};
+
+// Sınıf çiplerini yükle
+function loadSinifChips() {
+    const container = document.getElementById('sinifChipsContainer');
+    if (!container || !tClasses) return;
+    
+    container.innerHTML = '';
+    const siniflar = Object.keys(tClasses).sort();
+    
+    siniflar.forEach(sinif => {
+        const chip = document.createElement('span');
+        chip.className = 'class-chip';
+        chip.textContent = sinif;
+        chip.onclick = function() {
+            this.classList.toggle('selected');
+            if (this.classList.contains('selected')) {
+                selectedSiniflar.push(sinif);
+            } else {
+                selectedSiniflar = selectedSiniflar.filter(s => s !== sinif);
+            }
+            // Öğrenci listesini güncelle
+            if (selectedTargetAudience === 'Öğrenciler' || selectedTargetAudience === 'Herkes') {
+                loadDuyuruOgrenciler();
+            }
+        };
+        container.appendChild(chip);
+    });
+}
+
+// Duyuru için öğrencileri yükle
+function loadDuyuruOgrenciler() {
+    const container = document.getElementById('duyuruOgrenciList');
+    if (!container) return;
+    
+    allStudentsForDuyuru = [];
+    
+    if (selectedSiniflar.length === 0) {
+        // Tüm sınıflardaki öğrencileri yükle
+        Object.keys(tClasses).forEach(sinif => {
+            tClasses[sinif].forEach(s => {
+                if (!allStudentsForDuyuru.find(x => x.number === s.number)) {
+                    allStudentsForDuyuru.push({...s, sinif: sinif});
+                }
+            });
+        });
+    } else {
+        // Sadece seçili sınıflardaki öğrencileri yükle
+        selectedSiniflar.forEach(sinif => {
+            if (tClasses[sinif]) {
+                tClasses[sinif].forEach(s => {
+                    if (!allStudentsForDuyuru.find(x => x.number === s.number)) {
+                        allStudentsForDuyuru.push({...s, sinif: sinif});
+                    }
+                });
+            }
+        });
+    }
+    
+    renderDuyuruOgrenciler(allStudentsForDuyuru);
+}
+
+// Öğrenci listesini render et
+function renderDuyuruOgrenciler(students) {
+    const container = document.getElementById('duyuruOgrenciList');
+    if (!container) return;
+    
+    container.innerHTML = students.map(s => {
+        const isSelected = selectedOgrenciler.includes(s.number.toString());
+        return `
+            <div class="st-card ${isSelected ? 'selected' : ''}" 
+                 onclick="toggleDuyuruOgrenci('${s.number}', this)"
+                 style="cursor: pointer;">
+                <div style="text-align: left;">
+                    <div style="font-weight: 700; font-size: 0.85rem;">${s.name}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">No: ${s.number} • ${s.sinif}</div>
+                </div>
+                <div class="check-circle"></div>
+            </div>
+        `;
+    }).join('');
+    
+    updateSelectedOgrenciCount();
+}
+
+// Öğrenci seçimi toggle
+window.toggleDuyuruOgrenci = (number, cardEl) => {
+    const numStr = number.toString();
+    if (selectedOgrenciler.includes(numStr)) {
+        selectedOgrenciler = selectedOgrenciler.filter(n => n !== numStr);
+        cardEl.classList.remove('selected');
+    } else {
+        selectedOgrenciler.push(numStr);
+        cardEl.classList.add('selected');
+    }
+    updateSelectedOgrenciCount();
+};
+
+// Seçili öğrenci sayısını güncelle
+function updateSelectedOgrenciCount() {
+    const countEl = document.getElementById('selectedOgrenciCount');
+    if (countEl) countEl.textContent = selectedOgrenciler.length;
+}
+
+// Öğrenci arama/filtreleme
+window.filterDuyuruOgrenciler = (term) => {
+    const q = term.toLowerCase().trim();
+    if (q === '') {
+        renderDuyuruOgrenciler(allStudentsForDuyuru);
+        return;
+    }
+    
+    const filtered = allStudentsForDuyuru.filter(s => 
+        s.name.toLowerCase().includes(q) || 
+        s.number.toString().includes(q)
+    );
+    renderDuyuruOgrenciler(filtered);
+};
+
+// Duyuru gönderme
+window.submitDuyuru = async () => {
+    const baslik = document.getElementById('duyuruBaslik').value.trim();
+    const icerik = document.getElementById('duyuruIcerik').value.trim();
+    const planlananTarih = document.getElementById('duyuruPlanlananTarih').value;
+    const dosyaInput = document.getElementById('duyuruDosya');
+    
+    if (!baslik) return alert('Lütfen duyuru başlığını giriniz.');
+    if (!icerik) return alert('Lütfen duyuru içeriğini giriniz.');
+    
+    const submitBtn = document.getElementById('duyuruSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.5';
+    submitBtn.innerText = '⏳ Gönderiliyor...';
+    
+    try {
+        let dosyaData = '';
+        let dosyaAdi = '';
+        
+        // Dosya varsa base64'e çevir
+        if (dosyaInput.files[0]) {
+            const file = dosyaInput.files[0];
+            dosyaAdi = file.name;
+            dosyaData = await fileToBase64(file);
+        }
+        
+        const duyuruData = {
+            baslik: baslik,
+            icerik: icerik,
+            hedefKitle: selectedTargetAudience,
+            hedefSiniflar: selectedSiniflar,
+            hedefOgrenciler: selectedOgrenciler,
+            planlananTarih: planlananTarih,
+            dosyaAdi: dosyaAdi,
+            dosyaData: dosyaData,
+            paylasan: tName,
+            duyuruTipi: selectedDuyuruTipi,
+            tarih: serverTimestamp()
+        };
+        
+        if (editingDuyuruId) {
+            await updateDoc(doc(db, 'duyurular', editingDuyuruId), duyuruData);
+            showToast('Duyuru başarıyla güncellendi!');
+            editingDuyuruId = null;
+            submitBtn.innerText = '📢 DUYURUYU YAYINLA';
+        } else {
+            await addDoc(collection(db, 'duyurular'), duyuruData);
+            showToast('Duyuru başarıyla yayınlandı!');
+        }
+        
+        // Formu temizle
+        resetDuyuruForm();
+        
+    } catch (e) {
+        console.error('Duyuru gönderme hatası:', e);
+        showToast('Hata: ' + e.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+    }
+};
+
+// Dosyayı base64'e çevirme
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Formu temizle
+function resetDuyuruForm() {
+    document.getElementById('duyuruBaslik').value = '';
+    document.getElementById('duyuruIcerik').value = '';
+    document.getElementById('duyuruPlanlananTarih').value = '';
+    document.getElementById('duyuruDosya').value = '';
+    selectedSiniflar = [];
+    selectedOgrenciler = [];
+    editingDuyuruId = null;
+    
+    document.querySelectorAll('.class-chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('#duyuruOgrenciList .st-card').forEach(c => c.classList.remove('selected'));
+    updateSelectedOgrenciCount();
+    
+    const submitBtn = document.getElementById('duyuruSubmitBtn');
+    submitBtn.innerText = '📢 DUYURUYU YAYINLA';
+}
+
+// Duyuruları listeleme (Real-time)
+function listenDuyurular() {
+    const q = query(collection(db, 'duyurular'), where('paylasan', '==', tName));
+    
+    onSnapshot(q, (snap) => {
+        const container = document.getElementById('duyuruListesi');
+        if (!container) return;
+        
+        if (snap.empty) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <h3>Henüz duyuru yok</h3>
+                    <p>Yukarıdaki formu kullanarak ilk duyurunuzu oluşturun.</p>
+                </div>`;
+            return;
+        }
+        
+        // Tarihe göre sırala (en yeni en üstte)
+        const duyurular = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => {
+                const timeA = a.tarih?.seconds || 0;
+                const timeB = b.tarih?.seconds || 0;
+                return timeB - timeA;
+            });
+        
+        // Aktif filtreyi kontrol et
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset?.filter || 'all';
+        const filteredDuyurular = activeFilter === 'all' 
+            ? duyurular 
+            : duyurular.filter(d => d.hedefKitle === activeFilter);
+        
+        renderDuyuruList(filteredDuyurular);
+    });
+}
+
+// Duyuru listesini render et
+function renderDuyuruList(duyurular) {
+    const container = document.getElementById('duyuruListesi');
+    if (!container) return;
+    
+    if (duyurular.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">🔍</div>
+                <h3>Bu filtrede duyuru bulunamadı</h3>
+                <p>Farklı bir filtre seçmeyi deneyin.</p>
+            </div>`;
+        return;
+    }
+    
+    container.innerHTML = duyurular.map(d => {
+        const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date();
+        const tarihStr = tarih.toLocaleDateString('tr-TR', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const planlananTarih = d.planlananTarih ? new Date(d.planlananTarih).toLocaleDateString('tr-TR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }) : '';
+        
+        const targetIcon = d.hedefKitle === 'Veliler' ? '👨‍👩‍👧' : 
+                          d.hedefKitle === 'Öğrenciler' ? '🎒' : '👥';
+        
+        const tipClass = d.duyuruTipi === 'acil' ? 'acil' : 
+                        d.duyuruTipi === 'etkinlik' ? 'etkinlik' : 'bilgi';
+        
+        const dosyaHTML = d.dosyaAdi ? `
+            <div style="margin-top: 10px; padding: 10px; background: rgba(46, 213, 115, 0.1); border-radius: 12px; border: 1px dashed var(--success);">
+                <a href="data:application/octet-stream;base64,${d.dosyaData}" 
+                   download="${d.dosyaAdi}"
+                   style="color: var(--success); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                    📂 <b>Dosya Eki:</b> ${d.dosyaAdi}
+                </a>
+            </div>` : '';
+        
+        const siniflarHTML = d.hedefSiniflar && d.hedefSiniflar.length > 0 ? `
+            <div class="detail-item">
+                <span class="icon">🏫</span> ${d.hedefSiniflar.join(', ')}
+            </div>` : '';
+        
+        return `
+            <div class="duyuru-card ${tipClass}">
+                <div class="duyuru-header">
+                    <div class="duyuru-title">
+                        ${d.duyuruTipi === 'acil' ? '🚨 ' : d.duyuruTipi === 'etkinlik' ? '🎉 ' : '📋 '}${d.baslik}
+                    </div>
+                    <div class="duyuru-meta">
+                        <span class="target-badge ${d.hedefKitle.toLowerCase()}">${targetIcon} ${d.hedefKitle}</span>
+                    </div>
+                </div>
+                
+                <div class="duyuru-content">${d.icerik}</div>
+                
+                ${dosyaHTML}
+                
+                <div class="duyuru-details">
+                    <div class="detail-item">
+                        <span class="icon">👤</span> ${d.paylasan}
+                    </div>
+                    <div class="detail-item">
+                        <span class="icon">📅</span> ${tarihStr}
+                    </div>
+                    ${d.planlananTarih ? `
+                    <div class="detail-item">
+                        <span class="icon">⏰</span> Planlanan: ${planlananTarih}
+                    </div>` : ''}
+                    ${siniflarHTML}
+                    ${d.hedefOgrenciler && d.hedefOgrenciler.length > 0 ? `
+                    <div class="detail-item">
+                        <span class="icon">🎯</span> ${d.hedefOgrenciler.length} öğrenci
+                    </div>` : ''}
+                </div>
+                
+                <div class="duyuru-actions">
+                    <button class="duyuru-btn" onclick="editDuyuru('${d.id}', ${JSON.stringify(d).replace(/'/g, "&#39;").replace(/"/g, '&quot;')})">
+                        ✏️ Düzenle
+                    </button>
+                    <button class="duyuru-btn danger" onclick="deleteDuyuru('${d.id}')">
+                        🗑️ Sil
+                    </button>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// Duyuru düzenleme
+window.editDuyuru = (id, data) => {
+    editingDuyuruId = id;
+    
+    // Form alanlarını doldur
+    document.getElementById('duyuruBaslik').value = data.baslik || '';
+    document.getElementById('duyuruIcerik').value = data.icerik || '';
+    document.getElementById('duyuruPlanlananTarih').value = data.planlananTarih || '';
+    
+    // Hedef kitle
+    selectedTargetAudience = data.hedefKitle || 'Veliler';
+    document.querySelectorAll('.target-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.target === selectedTargetAudience);
+    });
+    
+    // Duyuru tipi
+    selectedDuyuruTipi = data.duyuruTipi || 'genel';
+    document.querySelectorAll('.tip-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tip === selectedDuyuruTipi);
+    });
+    
+    // Sınıflar
+    selectedSiniflar = data.hedefSiniflar || [];
+    document.querySelectorAll('.class-chip').forEach(c => {
+        c.classList.toggle('selected', selectedSiniflar.includes(c.textContent));
+    });
+    
+    // Öğrenciler
+    selectedOgrenciler = data.hedefOgrenciler || [];
+    
+    // Öğrenci alanını göster
+    if (selectedTargetAudience === 'Öğrenciler' || selectedTargetAudience === 'Herkes') {
+        document.getElementById('ogrenciSelectArea').style.display = 'block';
+        loadDuyuruOgrenciler();
+    }
+    
+    // Butonu güncelle
+    const submitBtn = document.getElementById('duyuruSubmitBtn');
+    submitBtn.innerText = '✏️ DUYURUYU GÜNCELLE';
+    
+    // Sayfayı yukarı kaydır
+    document.getElementById('duyurular').scrollIntoView({ behavior: 'smooth' });
+    
+    // Form açıksa kapalıysa aç
+    const form = document.getElementById('duyuruForm');
+    if (form.style.display === 'none') {
+        toggleDuyuruForm();
+    }
+};
+
+// Duyuru silme
+window.deleteDuyuru = async (id) => {
+    if (confirm('Bu duyuruyu silmek istediğinize emin misiniz?')) {
+        try {
+            await deleteDoc(doc(db, 'duyurular', id));
+            showToast('Duyuru başarıyla silindi!');
+        } catch (e) {
+            console.error('Silme hatası:', e);
+            showToast('Silme sırasında hata oluştu!', 'error');
+        }
+    }
+};
+
+// Duyuru filtreleme
+window.filterDuyurular = (filter, btn) => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Filtreleme, listenDuyurular içinde otomatik olarak yapılır
+    // Sadece UI'ı güncelle, onSnapshot zaten tetiklenecek
+};
+
+// Duyuru verilerini export için topla
+// (Export modülündeki collectData fonksiyonuna ek olarak)
+function collectDuyuruData() {
+    const duyuruCards = document.querySelectorAll('#duyuruListesi .duyuru-card');
+    const data = [];
+    
+    duyuruCards.forEach(card => {
+        const titleEl = card.querySelector('.duyuru-title');
+        const contentEl = card.querySelector('.duyuru-content');
+        const badgeEl = card.querySelector('.target-badge');
+        const detailsEls = card.querySelectorAll('.detail-item');
+        
+        let paylasan = '', tarih = '', planlanan = '';
+        detailsEls.forEach(el => {
+            const text = el.textContent.trim();
+            if (text.includes('👤')) paylasan = text.replace('👤', '').trim();
+            if (text.includes('📅')) tarih = text.replace('📅', '').trim();
+            if (text.includes('⏰')) planlanan = text.replace('⏰ Planlanan:', '').trim();
+        });
+        
+        data.push({
+            baslik: titleEl ? titleEl.textContent.replace(/[🚨🎉📋]/g, '').trim() : '',
+            icerik: contentEl ? contentEl.textContent.trim() : '',
+            hedefKitle: badgeEl ? badgeEl.textContent.trim() : '',
+            paylasan: paylasan,
+            tarih: tarih,
+            planlananTarih: planlanan
+        });
+    });
+    
+    return data;
+}
+
+// Export modülüne duyuru desteği ekle
+// (Mevcut exportData fonksiyonundaki switch-case'e ekleyin)
+// case 'duyurular':
+//     data = collectDuyuruData();
+//     fileName = `Duyurular_${new Date().toLocaleDateString('tr-TR')}`;
+//     columns = ['Başlık', 'İçerik', 'Hedef Kitle', 'Paylaşan', 'Tarih', 'Planlanan Tarih'];
+//     break;
+
+// Sayfa yüklendiğinde çalıştır
+loadSinifChips();
+listenDuyurular();
+
+// Export modülüne duyuru desteği eklemek için mevcut exportData fonksiyonunu güncelleyin
+const originalExportData = window.exportData;
+window.exportData = function(format, tabId) {
+    if (tabId === 'duyurular') {
+        const data = collectDuyuruData();
+        const fileName = `Duyurular_${new Date().toLocaleDateString('tr-TR')}`;
+        const columns = ['Başlık', 'İçerik', 'Hedef Kitle', 'Paylaşan', 'Tarih', 'Planlanan Tarih'];
+        
+        if (!data || data.length === 0) {
+            showToast('Dışa aktarılacak duyuru bulunamadı!', 'error');
+            return;
+        }
+        
+        switch(format) {
+            case 'excel': exportAsExcel(data, fileName, columns); break;
+            case 'csv': exportAsCSV(data, fileName, columns); break;
+            case 'pdf': exportAsPDF(data, fileName, columns, 'duyurular'); break;
+            case 'json': exportAsJSON(data, fileName); break;
+        }
+        
+        document.querySelectorAll('.export-dropdown-content').forEach(d => d.classList.remove('show'));
+        return;
+    }
+    
+    // Diğer sekmeler için orijinal fonksiyonu çağır
+    if (originalExportData) originalExportData(format, tabId);
+};
+
+// ==================== MESAJLAŞMA MODÜLÜ ====================
+
+// Global değişkenler
+let activeChatId = null;
+let activeChatData = null;
+let allChats = [];
+let messagesListener = null;
+let newChatTab = 'ogrenci'; // 'ogrenci' veya 'yonetim'
+
+// Yönetim listesi (ID ve isim eşleştirmesi)
+const yonetimListesi = {
+    'admin1': 'Okul Müdürü',
+    'admin2': 'Müdür Yardımcısı',
+    'admin3': 'Rehberlik Servisi',
+    'admin4': 'Zümre Başkanı'
+};
+
+// Sohbet listesini dinle (Real-time)
+function listenChats() {
+    // Öğretmenin ID'sini oluştur (isim soyisimden)
+    const ogretmenId = tName.replace(/\s+/g, '_');
+    
+    const q = query(
+        collection(db, 'sohbet_listesi'),
+        where('ogretmenId', '==', ogretmenId)
+    );
+    
+    onSnapshot(q, (snap) => {
+        allChats = snap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })).sort((a, b) => {
+            const timeA = a.guncellenmeTarihi?.seconds || 0;
+            const timeB = b.guncellenmeTarihi?.seconds || 0;
+            return timeB - timeA;
+        });
+        
+        renderChatList();
+    });
+}
+
+// Sohbet listesini render et
+function renderChatList(filterTerm = '', filterType = 'all') {
+    const container = document.getElementById('chatList');
+    if (!container) return;
+    
+    let filteredChats = allChats;
+    
+    // Türe göre filtrele
+    if (filterType === 'ogrenci') {
+        filteredChats = filteredChats.filter(c => c.ogrencild && c.ogrencild !== 'yonetim');
+    } else if (filterType === 'yonetim') {
+        filteredChats = filteredChats.filter(c => c.ogrencild === 'yonetim' || c.ogrenciAdi === 'Yönetim');
+    }
+    
+    // Arama terimine göre filtrele
+    if (filterTerm) {
+        const q = filterTerm.toLowerCase();
+        filteredChats = filteredChats.filter(c => 
+            (c.ogrenciAdi && c.ogrenciAdi.toLowerCase().includes(q)) ||
+            (c.sonMesaj && c.sonMesaj.toLowerCase().includes(q))
+        );
+    }
+    
+    if (filteredChats.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🔍</div>
+                <p style="font-size: 0.85rem;">Sonuç bulunamadı</p>
+            </div>`;
+        return;
+    }
+    
+    container.innerHTML = filteredChats.map(chat => {
+        const isActive = activeChatId === chat.id;
+        const isUnread = !chat.sonMesajGoruldu && chat.sonMesajGonderenRol !== 'ogretmen';
+        const time = chat.guncellenmeTarihi?.toDate ? formatMessageTime(chat.guncellenmeTarihi.toDate()) : '';
+        const isYonetim = chat.ogrencild === 'yonetim' || chat.ogrenciAdi === 'Yönetim';
+        const avatarClass = isYonetim ? 'yonetim' : 'ogrenci';
+        const initials = (chat.ogrenciAdi || '?').charAt(0).toUpperCase();
+        const roleBadge = isYonetim ? '<span class="role-badge yonetim">Yönetim</span>' : 
+                                     '<span class="role-badge ogrenci">Öğrenci</span>';
+        
+        return `
+            <div class="chat-item ${isActive ? 'active' : ''} ${isUnread ? 'unread' : ''}" 
+                 onclick="openChat('${chat.id}')">
+                <div class="chat-avatar ${avatarClass}">
+                    ${initials}
+                    ${isUnread ? '<div class="unread-dot"></div>' : ''}
+                </div>
+                <div class="chat-item-content">
+                    <div class="chat-item-name">
+                        ${chat.ogrenciAdi || 'Bilinmeyen'}
+                        ${roleBadge}
+                    </div>
+                    <div class="chat-item-preview">${chat.sonMesaj || 'Henüz mesaj yok'}</div>
+                </div>
+                <div class="chat-item-meta">
+                    <div class="chat-item-time">${time}</div>
+                    ${isUnread ? '<div class="chat-item-count">Yeni</div>' : ''}
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// Sohbet ara
+window.filterChats = (term) => {
+    const activeFilter = document.querySelector('.chat-filter-tab.active')?.textContent.trim();
+    let filterType = 'all';
+    if (activeFilter === '🎒 Öğrenci') filterType = 'ogrenci';
+    else if (activeFilter === '🏫 Yönetim') filterType = 'yonetim';
+    
+    renderChatList(term, filterType);
+};
+
+// Türe göre filtrele
+window.filterChatsByType = (type, btn) => {
+    document.querySelectorAll('.chat-filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const searchTerm = document.getElementById('chatSearchInput')?.value || '';
+    renderChatList(searchTerm, type);
+};
+
+// Sohbet aç
+window.openChat = async (chatId) => {
+    activeChatId = chatId;
+    
+    // Chat verisini bul
+    activeChatData = allChats.find(c => c.id === chatId);
+    if (!activeChatData) return;
+    
+    // UI güncelle
+    document.getElementById('chatEmptyState').style.display = 'none';
+    document.getElementById('activeChatArea').style.display = 'flex';
+    
+    const isYonetim = activeChatData.ogrencild === 'yonetim' || activeChatData.ogrenciAdi === 'Yönetim';
+    
+    document.getElementById('activeChatName').textContent = activeChatData.ogrenciAdi || 'Bilinmeyen';
+    document.getElementById('activeChatStatus').textContent = isYonetim ? 'Yönetim' : 'Öğrenci';
+    
+    const avatar = document.getElementById('activeChatAvatar');
+    avatar.textContent = (activeChatData.ogrenciAdi || '?').charAt(0).toUpperCase();
+    avatar.className = `chat-avatar ${isYonetim ? 'yonetim' : 'ogrenci'}`;
+    avatar.style.width = '40px';
+    avatar.style.height = '40px';
+    avatar.style.fontSize = '0.9rem';
+    
+    // Mobilde panel değişimi
+    if (window.innerWidth <= 768) {
+        document.getElementById('chatMainPanel').classList.add('active');
+    }
+    
+    // Mesajları dinle
+    listenMessages(chatId);
+    
+    // Okundu olarak işaretle
+    if (!activeChatData.sonMesajGoruldu && activeChatData.sonMesajGonderenRol !== 'ogretmen') {
+        await updateDoc(doc(db, 'sohbet_listesi', chatId), {
+            sonMesajGoruldu: true
+        });
+    }
+    
+    // Chat listesini güncelle
+    renderChatList();
+    
+    // Input'a focus
+    setTimeout(() => document.getElementById('messageInput')?.focus(), 300);
+};
+
+// Mesajları dinle
+function listenMessages(chatId) {
+    // Önceki listener'ı temizle
+    if (messagesListener) messagesListener();
+    
+    const messagesRef = collection(db, 'sohbet_listesi', chatId, 'mesajlar');
+    const q = query(messagesRef);
+    
+    messagesListener = onSnapshot(q, (snap) => {
+        const messages = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => {
+                const timeA = a.tarih?.seconds || 0;
+                const timeB = b.tarih?.seconds || 0;
+                return timeA - timeB;
+            });
+        
+        renderMessages(messages);
+    });
+}
+
+// Mesajları render et (DÜZELTİLMİŞ)
+function renderMessages(messages) {
+    const container = document.getElementById('chatMessages');
+    if (!container) return;
+    
+    if (messages.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <div style="font-size: 3rem;">💭</div>
+                <p>Henüz mesaj yok. İlk mesajı siz gönderin!</p>
+            </div>`;
+        return;
+    }
+    
+    const ogretmenId = tName.replace(/\s+/g, '_');
+    let lastDate = '';
+    let html = '';
+    
+    messages.forEach((msg, index) => {
+        const msgDate = msg.tarih?.toDate ? msg.tarih.toDate() : new Date();
+        const dateStr = msgDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const today = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        
+        // Tarih ayracı
+        if (dateStr !== lastDate) {
+            html += `
+                <div class="date-divider">
+                    <span>${dateStr === today ? 'Bugün' : dateStr}</span>
+                </div>`;
+            lastDate = dateStr;
+        }
+        
+        const isSent = msg.gonderenRol === 'ogretmen';
+        const timeStr = msgDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        
+        html += `
+            <div class="message-wrapper ${isSent ? 'sent' : 'received'}">
+                <div class="message-bubble">
+                    <div class="message-text">${escapeHtml(msg.icerik || '')}</div>
+                    <div class="message-time">
+                        ${timeStr}
+                        ${isSent ? `<span class="message-status">${msg.goruldu ? '✓✓' : '✓'}</span>` : ''}
+                    </div>
+                </div>
+            </div>`;
+    });
+    
+    container.innerHTML = html;
+    
+    // En alta kaydır - güvenli çağrı
+    setTimeout(() => scrollToBottom(false), 50);
+}
+// Mesaj gönder (DÜZELTİLMİŞ)
+window.sendMessage = async () => {
+    const input = document.getElementById('messageInput');
+    if (!input) return;
+    
+    const icerik = input.value.trim();
+    
+    if (!icerik || !activeChatId) return;
+    
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.disabled = true;
+    
+    try {
+        const ogretmenId = tName.replace(/\s+/g, '_');
+        
+        // Mesajı ekle
+        await addDoc(collection(db, 'sohbet_listesi', activeChatId, 'mesajlar'), {
+            icerik: icerik,
+            gonderenId: ogretmenId,
+            gonderenRol: 'ogretmen',
+            goruldu: false,
+            tarih: serverTimestamp()
+        });
+        
+        // Sohbet başlığını güncelle
+        await updateDoc(doc(db, 'sohbet_listesi', activeChatId), {
+            sonMesaj: icerik,
+            sonMesajGonderenRol: 'ogretmen',
+            sonMesajGoruldu: false,
+            guncellenmeTarihi: serverTimestamp()
+        });
+        
+        // Input'u temizle
+        input.value = '';
+        input.style.height = 'auto';
+        
+        // En alta kaydır
+        setTimeout(() => scrollToBottom(true), 100);
+        
+    } catch (e) {
+        console.error('Mesaj gönderme hatası:', e);
+        showToast('Mesaj gönderilemedi!', 'error');
+    } finally {
+        if (sendBtn) sendBtn.disabled = false;
+        if (input) input.focus();
+    }
+};
+
+// Enter ile mesaj gönderme (DÜZELTİLMİŞ)
+window.handleMessageKey = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+};
+
+// En alta kaydır (DÜZELTİLMİŞ)
+window.scrollToBottom = (smooth = true) => {
+    const container = document.getElementById('chatMessages');
+    if (!container) return;
+    
+    container.scrollTo({
+        top: container.scrollHeight,
+        behavior: smooth ? 'smooth' : 'instant'
+    });
+    
+    // Null kontrolü ile güvenli erişim
+    const scrollBtn = document.getElementById('scrollBottomBtn');
+    const newMsgBadge = document.getElementById('newMsgBadge');
+    
+    if (scrollBtn) scrollBtn.classList.remove('show');
+    if (newMsgBadge) newMsgBadge.style.display = 'none';
+};
+
+// Sohbeti kapat (mobil)
+window.closeActiveChat = () => {
+    activeChatId = null;
+    activeChatData = null;
+    
+    if (messagesListener) {
+        messagesListener();
+        messagesListener = null;
+    }
+    
+    document.getElementById('chatEmptyState').style.display = 'flex';
+    document.getElementById('activeChatArea').style.display = 'none';
+    document.getElementById('chatMessages').innerHTML = '';
+    
+    if (window.innerWidth <= 768) {
+        document.getElementById('chatMainPanel').classList.remove('active');
+    }
+    
+    renderChatList();
+};
+
+// Yeni sohbet modal
+window.openNewChatModal = () => {
+    document.getElementById('newChatModal').style.display = 'flex';
+    document.getElementById('newChatSearch').value = '';
+    document.getElementById('newChatUserResults').innerHTML = `
+        <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+            Arama yapmak için yukarıya yazın...
+        </div>`;
+    
+    // Varsayılan tab'ı sıfırla
+    newChatTab = 'ogrenci';
+    document.querySelectorAll('#newChatModal .chat-filter-tab').forEach((b, i) => {
+        b.classList.toggle('active', i === 0);
+    });
+};
+
+// Yeni sohbet tab değiştirme
+window.switchNewChatTab = (tab, btn) => {
+    newChatTab = tab;
+    document.querySelectorAll('#newChatModal .chat-filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Arama sonuçlarını sıfırla
+    document.getElementById('newChatSearch').value = '';
+    searchUsersForNewChat('');
+};
+
+// Kullanıcı ara
+window.searchUsersForNewChat = (term) => {
+    const container = document.getElementById('newChatUserResults');
+    if (!container) return;
+    
+    if (newChatTab === 'yonetim') {
+        // Yönetim listesinde ara
+        const results = Object.entries(yonetimListesi)
+            .filter(([id, name]) => {
+                if (!term.trim()) return true;
+                const q = term.toLowerCase();
+                return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+            })
+            .map(([id, name]) => ({
+                id: id,
+                name: name,
+                type: 'yonetim'
+            }));
+        
+        renderNewChatResults(results, container);
+    } else {
+        // Öğrencilerde ara
+        if (!term.trim()) {
+            container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">Öğrenci aramak için isim veya numara yazın...</div>`;
+            return;
+        }
+        
+        const q = term.toLowerCase();
+        const results = [];
+        
+        Object.keys(tClasses).forEach(sinif => {
+            tClasses[sinif].forEach(s => {
+                if (s.name.toLowerCase().includes(q) || s.number.toString().includes(q)) {
+                    if (!results.find(r => r.id === s.number.toString())) {
+                        results.push({
+                            id: s.number.toString(),
+                            name: s.name,
+                            sinif: sinif,
+                            type: 'ogrenci'
+                        });
+                    }
+                }
+            });
+        });
+        
+        renderNewChatResults(results.slice(0, 20), container); // Max 20 sonuç
+    }
+};
+
+// Yeni sohbet sonuçlarını render et
+function renderNewChatResults(results, container) {
+    if (results.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">Sonuç bulunamadı</div>`;
+        return;
+    }
+    
+    container.innerHTML = results.map(user => {
+        const initials = user.name.charAt(0).toUpperCase();
+        const avatarClass = user.type === 'yonetim' ? 'yonetim' : 'ogrenci';
+        const subtitle = user.type === 'yonetim' ? 'Yönetim' : `Sınıf: ${user.sinif || 'Bilinmeyen'}`;
+        
+        return `
+            <div class="user-result-item" onclick="startNewChat('${user.id}', '${escapeHtml(user.name)}', '${user.type}')">
+                <div class="user-result-avatar chat-avatar ${avatarClass}" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                    ${initials}
+                </div>
+                <div class="user-result-info">
+                    <div class="user-result-name">${user.name}</div>
+                    <div class="user-result-detail">${subtitle}</div>
+                </div>
+                <span style="color: var(--primary); font-size: 1.2rem;">→</span>
+            </div>`;
+    }).join('');
+}
+
+// Yeni sohbet başlat
+window.startNewChat = async (userId, userName, userType) => {
+    try {
+        const ogretmenId = tName.replace(/\s+/g, '_');
+        
+        // Benzersiz sohbet ID'si
+        const chatId = userType === 'yonetim' 
+            ? `${userId}_${ogretmenId}`
+            : `${userId}_${ogretmenId}`;
+        
+        // Sohbet zaten var mı kontrol et
+        const existingChat = allChats.find(c => c.id === chatId);
+        
+        if (existingChat) {
+            closeModal('newChatModal');
+            openChat(chatId);
+            showToast('Bu sohbet zaten mevcut, açılıyor...');
+            return;
+        }
+        
+        // Yeni sohbet oluştur
+        await setDoc(doc(db, 'sohbet_listesi', chatId), {
+            id: chatId,
+            ogrenciAdi: userName,
+            ogrencild: userId,
+            ogretmenAdi: tName,
+            ogretmenId: ogretmenId,
+            sonMesaj: '',
+            sonMesajGonderenRol: '',
+            sonMesajGoruldu: true,
+            guncellenmeTarihi: serverTimestamp(),
+            gizleyenler: []
+        });
+        
+        closeModal('newChatModal');
+        
+        // Yeni sohbeti aç
+        setTimeout(() => openChat(chatId), 500);
+        showToast('Yeni sohbet başlatıldı!');
+        
+    } catch (e) {
+        console.error('Sohbet başlatma hatası:', e);
+        showToast('Sohbet başlatılamadı!', 'error');
+    }
+};
+
+// Sohbet silme onayı
+window.deleteChatConfirm = () => {
+    if (!activeChatId) return;
+    if (confirm('Bu sohbeti silmek istediğinize emin misiniz? Tüm mesajlar silinecek.')) {
+        deleteChat(activeChatId);
+    }
+};
+
+// Sohbet sil
+async function deleteChat(chatId) {
+    try {
+        // Alt koleksiyondaki mesajları sil
+        const messagesSnap = await getDocs(collection(db, 'sohbet_listesi', chatId, 'mesajlar'));
+        const deletePromises = messagesSnap.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+        
+        // Ana dokümanı sil
+        await deleteDoc(doc(db, 'sohbet_listesi', chatId));
+        
+        closeActiveChat();
+        showToast('Sohbet başarıyla silindi!');
+    } catch (e) {
+        console.error('Silme hatası:', e);
+        showToast('Silme işlemi başarısız!', 'error');
+    }
+}
+
+// Mesajda ara (basit implementasyon)
+window.searchInChat = () => {
+    const term = prompt('Mesajda aranacak kelime:');
+    if (!term) return;
+    
+    const messages = document.querySelectorAll('.message-text');
+    let found = false;
+    
+    messages.forEach(msg => {
+        const text = msg.textContent.toLowerCase();
+        if (text.includes(term.toLowerCase())) {
+            msg.style.background = 'rgba(245, 158, 11, 0.3)';
+            msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            found = true;
+            setTimeout(() => {
+                msg.style.background = '';
+            }, 2000);
+        }
+    });
+    
+    if (!found) {
+        showToast('Aranan kelime bulunamadı.', 'error');
+    }
+};
+
+// Yardımcı fonksiyonlar
+function formatMessageTime(date) {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Şimdi';
+    if (minutes < 60) return `${minutes} dk`;
+    if (hours < 24) return `${hours} sa`;
+    if (days < 7) return `${days} gün`;
+    
+    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Scroll olayını dinle (DÜZELTİLMİŞ)
+document.addEventListener('DOMContentLoaded', () => {
+    const msgContainer = document.getElementById('chatMessages');
+    if (msgContainer) {
+        msgContainer.addEventListener('scroll', () => {
+            const threshold = 100;
+            const isNearBottom = msgContainer.scrollHeight - msgContainer.scrollTop - msgContainer.clientHeight < threshold;
+            
+            const scrollBtn = document.getElementById('scrollBottomBtn');
+            const newMsgBadge = document.getElementById('newMsgBadge');
+            
+            if (isNearBottom) {
+                if (scrollBtn) scrollBtn.classList.remove('show');
+                if (newMsgBadge) newMsgBadge.style.display = 'none';
+            }
+        });
+    }
+});
+
+// Sayfa yüklendiğinde sohbetleri dinlemeye başla
+listenChats();
+
+// SetDoc import (dosyanın en üstündeki importlara ekleyin)
+// import { ..., setDoc } from "...";
 
 
 // Sayfa ilk açıldığında çalıştır
