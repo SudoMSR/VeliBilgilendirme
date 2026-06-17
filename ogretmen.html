@@ -1159,30 +1159,40 @@ window.submitHw = async () => {
                     </div>` 
                     : "";
 
-                // ÖĞRENCİ DEĞERLENDİRME PANELİ (YENİ)
-                const evalRowsHTML = (d.ogrenciler || []).map(sName => {
-                    const isDone = okuyanlar.includes(sName);
-                    const existing = degerlendirmeler[sName] || null;
-                    const safeName = sName.replace(/'/g, "\\'");
+// ÖĞRENCİ DEĞERLENDİRME PANELİ (YENİLENDİ)
+const evalRowsHTML = (d.ogrenciler || []).map(sName => {
+    const isDone = okuyanlar.includes(sName);
+    const existing = degerlendirmeler[sName] || null;
+    
+    // İsmi HTML attribute'ları içinde güvenle taşımak için çift tırnakları encode ediyoruz
+    const attrSafeName = sName.replace(/"/g, '&quot;');
 
-                    const scoreBtnsHTML = [1,2,3,4,5].map(n => {
-                        const active = existing && existing.puan === n ? 'active' : '';
-                        return `<button type="button" class="eval-score-btn ${active}" data-score="${n}" onclick="setHwEvalScore(this, '${docSnap.id}', '${safeName}', ${n})">${n}</button>`;
-                    }).join('');
+    const scoreBtnsHTML = [1,2,3,4,5].map(n => {
+        const active = existing && existing.puan === n ? 'active' : '';
+        return `<button type="button" 
+                        class="eval-score-btn ${active}" 
+                        data-score="${n}" 
+                        onclick="window.setHwEvalScore(this)">${n}</button>`;
+    }).join('');
 
-                    return `
-                        <div class="eval-student-row" id="evalRow-${docSnap.id}-${encodeURIComponent(sName)}" data-search-name="${sName.toLowerCase()}">
-                            <div class="eval-student-head">
-                                <strong style="font-size:0.85rem;">${sName}</strong>
-                                <span class="eval-status-chip ${isDone ? 'done' : 'pending'}">${isDone ? '✅ Tamamladı' : '⏳ Beklemede'}</span>
-                            </div>
-                            <div class="eval-score-row">${scoreBtnsHTML}</div>
-                            <textarea class="eval-note-input" placeholder="Not yazın (opsiyonel)...">${existing && existing.not ? existing.not : ''}</textarea>
-                            <button type="button" class="eval-save-btn" onclick="saveHwEvaluation('${docSnap.id}', '${safeName}')">DEĞERLENDİRMEYİ KAYDET</button>
-                            ${existing ? `<div class="eval-saved-note">Son kayıt: ⭐ ${existing.puan} puan${existing.not ? ' • "' + existing.not + '"' : ''}</div>` : ''}
-                        </div>`;
-                }).join('');
-
+    return `
+        <div class="eval-student-row" id="evalRow-${docSnap.id}-${encodeURIComponent(sName)}" data-search-name="${sName.toLowerCase()}">
+            <div class="eval-student-head">
+                <strong style="font-size:0.85rem;">${sName}</strong>
+                <span class="eval-status-chip ${isDone ? 'done' : 'pending'}">${isDone ? '✅ Tamamladı' : '⏳ Beklemede'}</span>
+            </div>
+            <div class="eval-score-row">${scoreBtnsHTML}</div>
+            <textarea class="eval-note-input" placeholder="Not yazın (opsiyonel)...">${existing && existing.not ? existing.not : ''}</textarea>
+            
+            <button type="button" 
+                    class="eval-save-btn" 
+                    data-hwid="${docSnap.id}" 
+                    data-student="${attrSafeName}" 
+                    onclick="window.saveHwEvaluation(this)">DEĞERLENDİRMEYİ KAYDET</button>
+                    
+            ${existing ? `<div class="eval-saved-note">Son kayıt: ⭐ ${existing.puan} puan${existing.not ? ' • "' + existing.not + '"' : ''}</div>` : ''}
+        </div>`;
+}).join('');
                 cont.innerHTML += `
                     <div class="track-item">
                         <div style="display:flex; justify-content:space-between; align-items:start">
@@ -1221,74 +1231,82 @@ window.submitHw = async () => {
                 document.getElementById('readersModal').style.display = 'flex';
             };
 
-            // 7b. ÖĞRENCİ DEĞERLENDİRME PANELİ AÇ/KAPA (YENİ)
-            window.toggleEvalPanel = (hwId) => {
-                const panel = document.getElementById(`evalPanel-${hwId}`);
-                if (!panel) return;
-                panel.classList.toggle('open');
-                // Panel her açılışta arama kutusunu ve filtreyi sıfırla
-                if (panel.classList.contains('open')) {
-                    const searchInput = panel.querySelector('.eval-search-input');
-                    if (searchInput) searchInput.value = "";
-                    window.filterEvalStudents(hwId, "");
-                }
-            };
+// 7b. ÖĞRENCİ DEĞERLENDİRME PANELİ AÇ/KAPA (YENİ)
+window.toggleEvalPanel = (hwId) => {
+    const panel = document.getElementById(`evalPanel-${hwId}`);
+    if (!panel) return;
+    panel.classList.toggle('open');
+    // Panel her açılışta arama kutusunu ve filtreyi sıfırla
+    if (panel.classList.contains('open')) {
+        const searchInput = panel.querySelector('.eval-search-input');
+        if (searchInput) searchInput.value = "";
+        window.filterEvalStudents(hwId, "");
+    }
+};
 
-            // 7e. ÖĞRENCİ DEĞERLENDİRME PANELİNDE ARAMA (YENİ)
-            window.filterEvalStudents = (hwId, term) => {
-                const panel = document.getElementById(`evalPanel-${hwId}`);
-                if (!panel) return;
-                const q = term.toLowerCase().trim();
-                const rows = panel.querySelectorAll('.eval-student-row');
-                let visibleCount = 0;
+// 7e. ÖĞRENCİ DEĞERLENDİRME PANELİNDE ARAMA (YENİ)
+window.filterEvalStudents = (hwId, term) => {
+    const panel = document.getElementById(`evalPanel-${hwId}`);
+    if (!panel) return;
+    const q = term.toLowerCase().trim();
+    const rows = panel.querySelectorAll('.eval-student-row');
+    let visibleCount = 0;
 
-                rows.forEach(row => {
-                    const name = row.dataset.searchName || "";
-                    const matches = name.includes(q);
-                    row.style.display = matches ? "" : "none";
-                    if (matches) visibleCount++;
-                });
+    rows.forEach(row => {
+        const name = row.dataset.searchName || "";
+        const matches = name.includes(q);
+        row.style.display = matches ? "" : "none";
+        if (matches) visibleCount++;
+    });
 
-                const noMatchEl = document.getElementById(`evalNoMatch-${hwId}`);
-                if (noMatchEl) noMatchEl.style.display = (visibleCount === 0 && rows.length > 0) ? "block" : "none";
-            };
+    const noMatchEl = document.getElementById(`evalNoMatch-${hwId}`);
+    if (noMatchEl) noMatchEl.style.display = (visibleCount === 0 && rows.length > 0) ? "block" : "none";
+};
 
-            // 7c. PUAN SEÇİMİ (YENİ) - sadece görsel state, kayıt "DEĞERLENDİRMEYİ KAYDET" ile yapılır
-            window.setHwEvalScore = (btnEl, hwId, studentName, score) => {
-                const row = btnEl.closest('.eval-student-row');
-                if (!row) return;
-                row.querySelectorAll('.eval-score-btn').forEach(b => {
-                    b.classList.toggle('active', parseInt(b.dataset.score) === score);
-                });
-                row.dataset.selectedScore = score;
-            };
+// 7c. PUAN SEÇİMİ (YENİLENEN GÜVENLİ SÜRÜM)
+window.setHwEvalScore = (btnEl) => {
+    // Skor bilgisini butonun dataset'inden çekiyoruz
+    const score = parseInt(btnEl.dataset.score);
+    
+    const row = btnEl.closest('.eval-student-row');
+    if (!row) return;
+    
+    row.querySelectorAll('.eval-score-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.score) === score);
+    });
+    row.dataset.selectedScore = score;
+};
 
-            // 7d. ÖĞRENCİ DEĞERLENDİRMESİNİ KAYDET (YENİ)
-            window.saveHwEvaluation = async (hwId, studentName) => {
-                const rowId = `evalRow-${hwId}-${encodeURIComponent(studentName)}`;
-                const row = document.getElementById(rowId);
-                if (!row) return;
+// 7d. ÖĞRENCİ DEĞERLENDİRMESİNİ KAYDET (YENİLENEN GÜVENLİ SÜRÜM)
+window.saveHwEvaluation = async (btnEl) => {
+    // Butona gömülü verileri tırnak çakışması riski olmadan güvenle okuyoruz
+    const hwId = btnEl.dataset.hwid;
+    const studentName = btnEl.dataset.student;
 
-                const activeBtn = row.querySelector('.eval-score-btn.active');
-                const score = activeBtn ? parseInt(activeBtn.dataset.score) : null;
-                const noteVal = row.querySelector('.eval-note-input').value.trim();
+    const rowId = `evalRow-${hwId}-${encodeURIComponent(studentName)}`;
+    const row = document.getElementById(rowId);
+    if (!row) return;
 
-                if (!score) return alert("Lütfen 1-5 arası bir puan seçin!");
+    const activeBtn = row.querySelector('.eval-score-btn.active');
+    const score = activeBtn ? parseInt(activeBtn.dataset.score) : null;
+    const noteVal = row.querySelector('.eval-note-input').value.trim();
 
-                try {
-                    await updateDoc(doc(db, "odevler", hwId), {
-                        [`degerlendirmeler.${studentName}`]: {
-                            puan: score,
-                            not: noteVal,
-                            tarih: new Date()
-                        }
-                    });
-                    alert(`${studentName} için değerlendirme kaydedildi.`);
-                } catch (e) {
-                    console.error("Değerlendirme kayıt hatası:", e);
-                    alert("Değerlendirme kaydedilirken hata oluştu: " + e.message);
-                }
-            };
+    if (!score) return alert("Lütfen 1-5 arası bir puan seçin!");
+
+    try {
+        await updateDoc(doc(db, "odevler", hwId), {
+            [`degerlendirmeler.${studentName}`]: {
+                puan: score,
+                not: noteVal,
+                tarih: new Date()
+            }
+        });
+        alert(`${studentName} için değerlendirme kaydedildi.`);
+    } catch (e) {
+        console.error("Değerlendirme kayıt hatası:", e);
+        alert("Değerlendirme kaydedilirken hata oluştu: " + e.message);
+    }
+};
 
             // 8. DİĞER FONKSİYONLAR (Düzenle, Sil, Kapat, Aktivite)
             window.editHw = (id, data) => {
