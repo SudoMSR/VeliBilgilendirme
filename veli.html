@@ -79,6 +79,34 @@
         .btn-read { width: 100%; padding: 14px; border-radius: 14px; background: var(--primary); color: white; border: none; font-weight: 800; cursor: pointer; margin-top: auto; }
         .status-done { padding: 14px; border-radius: 14px; background: rgba(16, 185, 129, 0.1); color: var(--primary); font-weight: 800; text-align: center; margin-top: auto; }
         .hidden { display: none; }
+
+        /* ÖĞRETMEN DEĞERLENDİRMESİ (YENİ) */
+        .teacher-eval-box {
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .teacher-eval-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .teacher-eval-score {
+            font-weight: 800;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+        .teacher-eval-note {
+            font-size: 0.85rem;
+            color: var(--text-main);
+            line-height: 1.5;
+            font-style: italic;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -200,6 +228,9 @@ const firebaseConfig = {
         btn.classList.add('active');
     };
 
+    // Puan rengi yardımcı fonksiyonu (öğretmen değerlendirmesi için)
+    const scoreColors = ["", "#ef4444", "#f59e0b", "#6366f1", "#10b981", "#22c55e"];
+
     onSnapshot(query(collection(db, "odevler"), where("sinif", "==", session.sinif)), (snap) => {
         const grid = document.getElementById('activeGrid');
         grid.innerHTML = snap.empty ? "<p style='text-align:center; color:var(--text-muted);'>Aktif ödev bulunmuyor.</p>" : "";
@@ -207,7 +238,23 @@ const firebaseConfig = {
             const data = d.data();
             const isRead = data.okuyanlar?.includes(session.adSoyad);
             const fileHtml = data.dosyaUrl ? `<a href="${data.dosyaUrl}" target="_blank" class="btn-file">📂 Ödev Dosyasını Görüntüle</a>` : '';
-            grid.innerHTML += `<div class="card"><div class="hw-branch">${data.ders || 'GENEL'}</div><div class="hw-title">${data.baslik}</div><p style="font-size:0.85rem; color:var(--text-muted);">${data.aciklama}</p>${fileHtml}<div style="margin-top:10px; font-size:0.75rem; color:var(--accent); font-weight:700;">📅 Son Teslim: ${data.teslimTarihi}</div>${isRead ? '<div class="status-done">✅ Okundu</div>' : `<button class="btn-read" onclick="markRead('${d.id}')">OKUDUM</button>`}</div>`;
+
+            // ÖĞRETMEN DEĞERLENDİRMESİ VAR MI? (YENİ)
+            const myEval = data.degerlendirmeler ? data.degerlendirmeler[session.adSoyad] : null;
+            let evalHtml = '';
+            if (myEval) {
+                const color = scoreColors[myEval.puan] || "#ccc";
+                evalHtml = `
+                    <div class="teacher-eval-box">
+                        <div class="teacher-eval-head">
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">👨‍🏫 Öğretmen Değerlendirmesi</span>
+                            <span class="teacher-eval-score" style="background:${color}20; color:${color}; border:1px solid ${color}40;">⭐ ${myEval.puan} Puan</span>
+                        </div>
+                        ${myEval.not ? `<div class="teacher-eval-note">"${myEval.not}"</div>` : ''}
+                    </div>`;
+            }
+
+            grid.innerHTML += `<div class="card"><div class="hw-branch">${data.ders || 'GENEL'}</div><div class="hw-title">${data.baslik}</div><p style="font-size:0.85rem; color:var(--text-muted);">${data.aciklama}</p>${fileHtml}<div style="margin-top:10px; font-size:0.75rem; color:var(--accent); font-weight:700;">📅 Son Teslim: ${data.teslimTarihi}</div>${evalHtml}${isRead ? '<div class="status-done">✅ Tamamlandı</div>' : `<button class="btn-read" onclick="markRead('${d.id}')">TAMAMLADIM</button>`}</div>`;
         });
     });
 
